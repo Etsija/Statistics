@@ -63,6 +63,7 @@ public class Statistics extends JavaPlugin {
 							 "Statistics", 
 							 ".sqlite");
 		sqlDb.createTables();
+		new PlayerListener(this);
 		_log.info("[Statistics] enabled!");
 	}
 	
