@@ -32,8 +32,9 @@ public class SqlFuncs {
 		// Table PLAYER
 		if (!_sqLite.isTable("player")) {
 			try {
-				_sqLite.query("CREATE TABLE player(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-						   + "playername TEXT UNIQUE);");
+				_sqLite.query("CREATE TABLE player("
+						    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+						    + "playername TEXT UNIQUE);");
 			} catch (Exception e) {
 				// TODO
 			}
@@ -41,15 +42,17 @@ public class SqlFuncs {
 		// Table LOGIN
 		if (!_sqLite.isTable("login")) {
 			try {
-				_sqLite.query("CREATE TABLE login(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-						   + "id_player INTEGER NOT NULL, "
-						   + "timestamp DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')), "
-						   + "type TEXT, "
-						   + "world TEXT, "
-						   + "x INT, "
-						   + "y INT, "
-						   + "z INT, "
-						   + "FOREIGN KEY(id_player) REFERENCES player(id) ON DELETE CASCADE);");
+				_sqLite.query("CREATE TABLE login("
+						    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+						    + "id_player INTEGER NOT NULL, "
+						    + "time_login DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')), "
+						    + "time_logout DATETIME, "
+						    + "time_afk DATETIME, "
+						    + "world TEXT, "
+						    + "x INT, "
+						    + "y INT, "
+						    + "z INT, "
+						    + "FOREIGN KEY(id_player) REFERENCES player(id) ON DELETE CASCADE);");
 			} catch (Exception e) {
 				// TODO
 			}
@@ -67,23 +70,18 @@ public class SqlFuncs {
 		return false;
 	}
 	
-	// Function for inserting a login event into LOGIN table
-	public boolean insertLogin(int id_player, String world, int x, int y, int z) {
+	// Function for inserting a login event into LOGIN table.  This effectively creates the record
+	// for this particular visit of a player.  The record is completed (updated) when the user logs out
+	public boolean insertLogin(int id_player) {
 		try {
-			_sqLite.query("INSERT INTO login(id_player, type, world, x, y, z) "
-					   + "VALUES('" + id_player + "', "
-					   + "'login', "
-					   + "'" + world + "', "
-					   + "'" + x + "', "
-					   + "'" + y + "', "
-					   + "'" + z + "');");
+			_sqLite.query("INSERT INTO login(id_player) "
+			            + "VALUES('" + id_player + "');");
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
-	
 	
 	// CRUD: Read
 	
@@ -105,7 +103,46 @@ public class SqlFuncs {
 		return idPlayer;
 	}
 	
-
+	public int readLatestLogin(String playerName) {
+		int idLogin = 0;
+		
+		try {
+			ResultSet rs = _sqLite.query("SELECT login.* FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player "
+									   + "ORDER BY login.time_login DESC LIMIT 1;");
+			if (rs.next()) {
+				try {
+					idLogin = rs.getInt("id");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+		return idLogin;
+	}
+	
+	// CRUD: Update
+	
+	// Function for inserting a logout event into LOGIN table.  This effectively is an update query
+	// which updates the record, previously created with insertLogin(), with the logout details
+	public boolean insertLogout(int idLogin, String world, int x, int y, int z) {
+		try {
+			_sqLite.query("UPDATE login "
+					    + "SET time_logout = datetime('now', 'localtime'), "
+					    + "world = '" + world + "', "
+					    + "x = '" + x + "', "
+					    + "y = '" + y + "', "
+					    + "z = '" + z + "' "
+					    + "WHERE id = '" + idLogin + "';");
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 	
 	// Function for closing the connection fo the database
 	public void closeConnection() {

@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 // This is the player listener class responsible of triggering the database actions
 // when the player does something interesting
@@ -23,20 +24,43 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		// Here you can print welcome messages for example
 		Player player = event.getPlayer();
 		String playerName = player.getName();
-		int idPlayer = _plugin.sqlDb.readPlayer(playerName);
-		_log.info("playerName = " + playerName);
-		_log.info("id_before = " + idPlayer);
+		int idPlayer = 0;
 		
+		// Check if the player has logged in before
+		idPlayer = _plugin.sqlDb.readPlayer(playerName);
 		if (idPlayer == 0) {
+			// If not, then create a new entry to the PLAYER table
 			_plugin.sqlDb.insertPlayer(playerName);
 			idPlayer = _plugin.sqlDb.readPlayer(playerName);
-			_log.info("id_after = " + idPlayer);
 		}
 		
+		// Create a new login entry to the LOGIN table
+		_plugin.sqlDb.insertLogin(idPlayer);
 	}
     
+	@EventHandler
+	public void onPlayerLeave(PlayerQuitEvent event) {
+		Player player = event.getPlayer();
+		String playerName = player.getName();
+		String world = player.getWorld().getName();
+		int x = (int) player.getLocation().getX();
+		int y = (int) player.getLocation().getY();
+		int z = (int) player.getLocation().getZ();
+		int idPlayer = 0;
+		int idLogin = 0;
+		
+		idPlayer = _plugin.sqlDb.readPlayer(playerName);
+		idLogin  = _plugin.sqlDb.readLatestLogin(playerName);
+		
+		_log.info("Player: " + playerName);
+		_log.info("Player id: " + idPlayer);
+		_log.info("Latest login id: " + idLogin);
+		
+		// Update the login record for this player with the logout details
+		_plugin.sqlDb.insertLogout(idLogin, world, x, y, z);
+	}
+	
     
 }
