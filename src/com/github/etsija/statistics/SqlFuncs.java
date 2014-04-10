@@ -188,6 +188,72 @@ public class SqlFuncs {
 		return onlineTime;
 	}
 	
+	// Get the total number of logins of a player
+	public int getTotalLogins(String playerName) {
+		int totalLogins = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT count(time_login) "
+									   + "AS total_logins "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					totalLogins = rs.getInt("total_logins");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+		return totalLogins;
+	}
+	
+	// Get the total playtime of a player on this server
+	public int getTotalPlaytime(String playerName) {
+		int totalPlaytime = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT total(time_online) "
+									   + "AS total_playtime "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					totalPlaytime = rs.getInt("total_playtime");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return totalPlaytime;
+	}
+	
+	// Get the average playtime of a player on this server
+	public int getAvgPlaytime(String playerName) {
+		int avgPlaytime = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT avg(time_online) "
+									   + "AS avg_playtime "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					avgPlaytime = rs.getInt("avg_playtime");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return avgPlaytime;
+	}
+	
 	// CRUD: Update
 	
 	// Function for inserting a logout event into LOGIN table.  This effectively is an update query

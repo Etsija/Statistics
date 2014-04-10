@@ -104,9 +104,13 @@ public class Statistics extends JavaPlugin {
 										 + ChatColor.GREEN + " [ONLINE since "
 										 + helper.timeFormatted(onlineTime) + "]");
 						List<String> loginList = sqlDb.readLoginInfo(playerName, _showLoginsPerUser);
+						
 						for (String str : loginList) {
 							sender.sendMessage(ChatColor.DARK_GREEN + str);
 						}
+						sender.sendMessage("Logins: " + sqlDb.getTotalLogins(playerName)
+										 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
+										 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName)));
 						return true;
 					} else {
 						// Find all players who have ever played on this server
@@ -121,6 +125,9 @@ public class Statistics extends JavaPlugin {
 								for (String str : loginList) {
 									sender.sendMessage(ChatColor.DARK_GREEN + str);
 								}
+								sender.sendMessage("Logins: " + sqlDb.getTotalLogins(playerName)
+										 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
+										 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName)));
 								return true;
 							}
 						}
