@@ -90,7 +90,7 @@ public class Statistics extends JavaPlugin {
 			sender.hasPermission("statistics.stats") &&
 			args.length > 0) {
 			
-			// /stats player / /stats player [playername]
+			// /stats player | /stats player [playername]
 			if (args[0].equalsIgnoreCase("user")) {
 				if (args.length < 2) {
 					sender.sendMessage("[Statistics] Usage: /stats user [playername]");
@@ -136,8 +136,28 @@ public class Statistics extends JavaPlugin {
 						return true;
 					}
 				}
+			
+			// /stats newest | /stats newest [n]
 			} else if (args[0].equalsIgnoreCase("newest")) {
-				
+				if (args.length < 2) {
+					List<String> newestList = sqlDb.readNewestLogins(_showNewestUsers);
+					sender.sendMessage("[Statistics] Latest " + newestList.size() + " visitors:");
+					for (String str : newestList) {
+						sender.sendMessage(ChatColor.DARK_GREEN + str);
+					}
+					return true;
+				} else if (args.length == 2) {
+					int howMany = Integer.parseInt(args[1]);
+					if (howMany < 1) {
+						howMany = 1;
+					}
+					List<String> newestList = sqlDb.readNewestLogins(howMany);
+					sender.sendMessage("[Statistics] Latest " + newestList.size() + " visitors:");
+					for (String str : newestList) {
+						sender.sendMessage(ChatColor.DARK_GREEN + str);
+					}
+					return true;
+				}
 			}
 		}
 		return false;

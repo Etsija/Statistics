@@ -31,8 +31,5 @@ public class HelperMethods {
 	        return "0" + number;
 	    }
 	    return String.valueOf(number);
-	}
-	
-	
-	
+	}	
 }
