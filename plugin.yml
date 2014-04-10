@@ -1,3 +1,9 @@
 name: Statistics
 main: com.github.etsija.statistics.Statistics
 version: 0.1
+commands:
+   stats:
+      description: This command gives some stats of a player
+      usage: /<command> [user/newest]
+      permission: statistics.stats
+      permission-message: You don't have <permission> permission.

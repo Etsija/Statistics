@@ -29,11 +29,11 @@ public class PlayerListener implements Listener {
 		int idPlayer = 0;
 		
 		// Check if the player has logged in before
-		idPlayer = _plugin.sqlDb.readPlayer(playerName);
+		idPlayer = _plugin.sqlDb.readPlayerId(playerName);
 		if (idPlayer == 0) {
 			// If not, then create a new entry to the PLAYER table
 			_plugin.sqlDb.insertPlayer(playerName);
-			idPlayer = _plugin.sqlDb.readPlayer(playerName);
+			idPlayer = _plugin.sqlDb.readPlayerId(playerName);
 		}
 		
 		// Create a new login entry to the LOGIN table
@@ -51,12 +51,8 @@ public class PlayerListener implements Listener {
 		int idPlayer = 0;
 		int idLogin = 0;
 		
-		idPlayer = _plugin.sqlDb.readPlayer(playerName);
-		idLogin  = _plugin.sqlDb.readLatestLogin(playerName);
-		
-		_log.info("Player: " + playerName);
-		_log.info("Player id: " + idPlayer);
-		_log.info("Latest login id: " + idLogin);
+		idPlayer = _plugin.sqlDb.readPlayerId(playerName);
+		idLogin  = _plugin.sqlDb.readLatestLoginId(playerName);
 		
 		// Update the login record for this player with the logout details
 		_plugin.sqlDb.insertLogout(idLogin, world, x, y, z);

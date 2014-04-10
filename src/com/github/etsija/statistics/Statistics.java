@@ -6,23 +6,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Statistics extends JavaPlugin {
 
-	private Logger _log = Logger.getLogger("Minecraft"); // Write debug info to console
-	File configFile;						// config.yml
-	FileConfiguration config;				// configuration object for config.yml
+	private Logger _log = Logger.getLogger("Minecraft"); 	// Write debug info to console
+	File configFile;										// config.yml
+	FileConfiguration config;								// configuration object for config.yml
 	public static Statistics plugin;
-	SqlFuncs sqlDb;				// Used to access the SqlFuncs class (= the database handling methods)
-	private String _fii = "";
-	private String _foo = "";
+	SqlFuncs sqlDb;											// Used to access the SqlFuncs class (= the database handling methods)
+	HelperMethods helper = new HelperMethods();				// Helper class with various methods
+	private int _nLatestLogins = 5;
 	
 	public void onEnable() {
 		
@@ -44,8 +51,7 @@ public class Statistics extends JavaPlugin {
 		        
 		// Set the default parameter values
 		final Map<String, Object> configParams = new HashMap<String, Object>();
-		configParams.put("fii", "dummy1");
-		configParams.put("foo", "dummy2");
+		configParams.put("number_of_latest_logins", 5);
 		setDefaultValues(config, configParams);
 				
 		// And save them to the files, if they don't already contain such parameters
@@ -53,8 +59,8 @@ public class Statistics extends JavaPlugin {
 		saveYaml(configFile, config);
 				
 		// Finally, import all needed config params from the corresponding config files
-		this._fii = config.getString("fii");
-		this._foo = config.getString("foo");
+		_nLatestLogins = config.getInt("number_of_latest_logins");
+		_log.info("what read: " + _nLatestLogins);
 		
 		sqlDb = new SqlFuncs(plugin, 
 							 this._log, 
@@ -74,7 +80,59 @@ public class Statistics extends JavaPlugin {
 		_log.info("[Statistics] disabled!");
 	}
 	
-	
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
+		// Command /stats
+		if (cmd.getName().equalsIgnoreCase("stats") &&
+			sender.hasPermission("statistics.stats") &&
+			args.length > 0) {
+			
+			// /stats player / /stats player [playername]
+			if (args[0].equalsIgnoreCase("user")) {
+				if (args.length < 2) {
+					sender.sendMessage("[Statistics] Usage: /stats user [playername]");
+				} else {
+					Player target = Bukkit.getServer().getPlayer(args[1]);
+					if (target != null) {
+						// If the player is online
+						String playerName = target.getName();
+						int onlineTime = sqlDb.getOnlineTime(playerName);
+						sender.sendMessage("[Statistics] '" + playerName + "' is"
+										 + ChatColor.GREEN + " [ONLINE since "
+										 + helper.timeFormatted(onlineTime) + "]");
+						List<String> loginList = sqlDb.readLoginInfo(playerName, _nLatestLogins);
+						for (String str : loginList) {
+							sender.sendMessage(ChatColor.DARK_GREEN + str);
+						}
+						return true;
+					} else {
+						// Find all players who have ever played on this server
+						OfflinePlayer [] allPlayers = Bukkit.getServer().getOfflinePlayers();
+						for (OfflinePlayer thisPlayer : allPlayers) {
+							String playerName = thisPlayer.getName();
+							// If the player is offline but has played on this server
+							if (playerName.equalsIgnoreCase(args[1])) {
+								sender.sendMessage("[Statistics] '" + playerName + "' is"
+												 + ChatColor.RED + " [OFFLINE]");
+								List<String> loginList = sqlDb.readLoginInfo(playerName, _nLatestLogins);
+								for (String str : loginList) {
+									sender.sendMessage(ChatColor.DARK_GREEN + str);
+								}
+								return true;
+							}
+						}
+						// The server does not know this player
+						sender.sendMessage("[Statistics] Sorry, the server does not know '" + args[1] + "'");
+						return true;
+					}
+				}
+			} else if (args[0].equalsIgnoreCase("newest")) {
+				
+			}
+		}
+		return false;
+	}
 	
 	
 	//////////////////////////////////////
