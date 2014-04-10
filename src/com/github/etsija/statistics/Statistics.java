@@ -29,7 +29,8 @@ public class Statistics extends JavaPlugin {
 	public static Statistics plugin;
 	SqlFuncs sqlDb;											// Used to access the SqlFuncs class (= the database handling methods)
 	HelperMethods helper = new HelperMethods();				// Helper class with various methods
-	private int _nLatestLogins = 5;
+	private int _showNewestUsers;
+	private int _showLoginsPerUser;
 	
 	public void onEnable() {
 		
@@ -51,7 +52,8 @@ public class Statistics extends JavaPlugin {
 		        
 		// Set the default parameter values
 		final Map<String, Object> configParams = new HashMap<String, Object>();
-		configParams.put("number_of_latest_logins", 5);
+		configParams.put("show_newest_users", 5);
+		configParams.put("show_logins_per_user", 5);
 		setDefaultValues(config, configParams);
 				
 		// And save them to the files, if they don't already contain such parameters
@@ -59,8 +61,8 @@ public class Statistics extends JavaPlugin {
 		saveYaml(configFile, config);
 				
 		// Finally, import all needed config params from the corresponding config files
-		_nLatestLogins = config.getInt("number_of_latest_logins");
-		_log.info("what read: " + _nLatestLogins);
+		_showLoginsPerUser = config.getInt("show_logins_per_user");
+		_showNewestUsers   = config.getInt("show_newest_users");
 		
 		sqlDb = new SqlFuncs(plugin, 
 							 this._log, 
@@ -101,7 +103,7 @@ public class Statistics extends JavaPlugin {
 						sender.sendMessage("[Statistics] '" + playerName + "' is"
 										 + ChatColor.GREEN + " [ONLINE since "
 										 + helper.timeFormatted(onlineTime) + "]");
-						List<String> loginList = sqlDb.readLoginInfo(playerName, _nLatestLogins);
+						List<String> loginList = sqlDb.readLoginInfo(playerName, _showLoginsPerUser);
 						for (String str : loginList) {
 							sender.sendMessage(ChatColor.DARK_GREEN + str);
 						}
@@ -115,7 +117,7 @@ public class Statistics extends JavaPlugin {
 							if (playerName.equalsIgnoreCase(args[1])) {
 								sender.sendMessage("[Statistics] '" + playerName + "' is"
 												 + ChatColor.RED + " [OFFLINE]");
-								List<String> loginList = sqlDb.readLoginInfo(playerName, _nLatestLogins);
+								List<String> loginList = sqlDb.readLoginInfo(playerName, _showLoginsPerUser);
 								for (String str : loginList) {
 									sender.sendMessage(ChatColor.DARK_GREEN + str);
 								}

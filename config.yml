@@ -1,1 +1,2 @@
-number_of_latest_logins: 5
+show_newest_users: 5
+show_logins_per_user: 5
