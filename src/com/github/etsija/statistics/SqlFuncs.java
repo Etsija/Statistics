@@ -134,24 +134,26 @@ public class SqlFuncs {
 	// Valid: times, coords etc. cannot be null
 	public List<String> readLoginInfo(String playerName, int n) {
 		int count = 0;
+		if (n < 1) {
+			n = 1;
+		}
 		List<String> retList = new ArrayList<String>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT login.* FROM player, login "
 									   + "WHERE player.playername = '" + playerName + "' "
 							           + "AND player.id = login.id_player "
 									   + "AND login.time_logout NOT NULL "
-							           + "ORDER BY login.time_logout DESC LIMIT " + n + ";");
+							           + "ORDER BY login.time_login DESC LIMIT " + n + ";");
 			while (rs.next() && (count < n)) {
 				try {
 					String timeLogin  = rs.getString("time_login");
-					String timeLogout = rs.getString("time_logout");
 					String timeOnline = helper.timeFormatted(rs.getInt("time_online"));
 					String world      = rs.getString("world");
 					int x             = rs.getInt("x");
 					int y             = rs.getInt("y");
 					int z             = rs.getInt("z");
-					String retString  = timeLogin + " - " + timeLogout + " (" + timeOnline + ") ["
-									  + world + "," + x + "," + y + "," + z + "]";
+					String retString  = timeLogin + " [" + timeOnline + "] ("
+									  + world + "," + x + "," + y + "," + z + ")";
 					retList.add(retString);
 					count++;
 				} catch (SQLException e) {
@@ -167,6 +169,9 @@ public class SqlFuncs {
 	// Function for finding n latest players who have logged out from the server
 	public List<String> readNewestLogins(int n) {
 		int count = 0;
+		if (n < 1) {
+			n = 1;
+		}
 		List<String> retList = new ArrayList<String>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT p.playername AS name, j.newest as newest, j.time_online as online FROM player AS p JOIN "

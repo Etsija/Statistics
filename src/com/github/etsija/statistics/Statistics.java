@@ -87,30 +87,24 @@ public class Statistics extends JavaPlugin {
 		
 		// Command /stats
 		if (cmd.getName().equalsIgnoreCase("stats") &&
-			sender.hasPermission("statistics.stats") &&
+			//sender.hasPermission("statistics.stats") &&
 			args.length > 0) {
 			
-			// /stats player | /stats player [playername]
-			if (args[0].equalsIgnoreCase("user")) {
+			// /stats user [playername] | /stats user [playername] {n}
+			if (args[0].equalsIgnoreCase("user") &&
+				sender.hasPermission("statistics.stats.player")) {
 				if (args.length < 2) {
-					sender.sendMessage("[Statistics] Usage: /stats user [playername]");
+					sender.sendMessage("[Statistics] Usage: /stats user [playername] {n}");
 				} else {
 					Player target = Bukkit.getServer().getPlayer(args[1]);
 					if (target != null) {
 						// If the player is online
 						String playerName = target.getName();
-						int onlineTime = sqlDb.getOnlineTime(playerName);
-						sender.sendMessage("[Statistics] '" + playerName + "' is"
-										 + ChatColor.GREEN + " [ONLINE since "
-										 + helper.timeFormatted(onlineTime) + "]");
-						List<String> loginList = sqlDb.readLoginInfo(playerName, _showLoginsPerUser);
-						
-						for (String str : loginList) {
-							sender.sendMessage(ChatColor.DARK_GREEN + str);
+						if (args.length == 2) {
+							showPlayerStats(sender, playerName, true, _showLoginsPerUser);
+						} else {
+							showPlayerStats(sender, playerName, true, Integer.parseInt(args[2]));
 						}
-						sender.sendMessage("Logins: " + sqlDb.getTotalLogins(playerName)
-										 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
-										 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName)));
 						return true;
 					} else {
 						// Find all players who have ever played on this server
@@ -119,15 +113,11 @@ public class Statistics extends JavaPlugin {
 							String playerName = thisPlayer.getName();
 							// If the player is offline but has played on this server
 							if (playerName.equalsIgnoreCase(args[1])) {
-								sender.sendMessage("[Statistics] '" + playerName + "' is"
-												 + ChatColor.RED + " [OFFLINE]");
-								List<String> loginList = sqlDb.readLoginInfo(playerName, _showLoginsPerUser);
-								for (String str : loginList) {
-									sender.sendMessage(ChatColor.DARK_GREEN + str);
+								if (args.length == 2) {
+									showPlayerStats(sender, playerName, false, _showLoginsPerUser);
+								} else {
+									showPlayerStats(sender, playerName, false, Integer.parseInt(args[2]));
 								}
-								sender.sendMessage("Logins: " + sqlDb.getTotalLogins(playerName)
-										 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
-										 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName)));
 								return true;
 							}
 						}
@@ -137,8 +127,9 @@ public class Statistics extends JavaPlugin {
 					}
 				}
 			
-			// /stats newest | /stats newest [n]
-			} else if (args[0].equalsIgnoreCase("newest")) {
+			// /stats newest | /stats newest {n}
+			} else if (args[0].equalsIgnoreCase("newest") &&
+					   sender.hasPermission("statistics.stats.newest")) {
 				if (args.length < 2) {
 					List<String> newestList = sqlDb.readNewestLogins(_showNewestUsers);
 					sender.sendMessage("[Statistics] Latest " + newestList.size() + " visitors:");
@@ -148,9 +139,6 @@ public class Statistics extends JavaPlugin {
 					return true;
 				} else if (args.length == 2) {
 					int howMany = Integer.parseInt(args[1]);
-					if (howMany < 1) {
-						howMany = 1;
-					}
 					List<String> newestList = sqlDb.readNewestLogins(howMany);
 					sender.sendMessage("[Statistics] Latest " + newestList.size() + " visitors:");
 					for (String str : newestList) {
@@ -158,11 +146,46 @@ public class Statistics extends JavaPlugin {
 					}
 					return true;
 				}
+			
+			// /stats self | /stats self {n}
+			} else if (args[0].equalsIgnoreCase("self") &&
+					   sender.hasPermission("statistics.stats.self")) {
+				Player player = (Player) sender;
+				if (args.length < 2) {
+					showPlayerStats(sender, player.getName(), true, _showLoginsPerUser);
+					return true;
+				} else if (args.length == 2) {
+					showPlayerStats(sender, player.getName(), true, Integer.parseInt(args[1]));
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 	
+	//////////////////////////////////////
+	// Some helper methods
+	//////////////////////////////////////
+	
+	// Function to show the stats of one player, whether online or offline
+	public void showPlayerStats(CommandSender sender, String playerName, boolean isOnline, int nLogins) {
+		if (isOnline) {
+			int onlineTime = sqlDb.getOnlineTime(playerName);
+			sender.sendMessage("[Statistics] '" + playerName + "' is"
+							 + ChatColor.GREEN + " [ONLINE since "
+						     + helper.timeFormatted(onlineTime) + "]");
+		} else {
+			sender.sendMessage("[Statistics] '" + playerName + "' is"
+					         + ChatColor.RED + " [OFFLINE]");
+		}
+		List<String> loginList = sqlDb.readLoginInfo(playerName, nLogins);
+		for (String str : loginList) {
+			sender.sendMessage(ChatColor.DARK_GREEN + str);
+		}
+		sender.sendMessage("Logins: " + sqlDb.getTotalLogins(playerName)
+						 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
+						 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName)));
+	}
 	
 	//////////////////////////////////////
 	// Plugin's file configuration methods

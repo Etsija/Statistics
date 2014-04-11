@@ -4,6 +4,6 @@ version: 0.1
 commands:
    stats:
       description: This command gives some stats of a player
-      usage: /<command> [user/newest]
+      usage: /<command> [user/newest/self]
       permission: statistics.stats
       permission-message: You don't have <permission> permission.
