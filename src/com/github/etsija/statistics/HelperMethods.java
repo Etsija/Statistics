@@ -3,11 +3,10 @@ package com.github.etsija.statistics;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Logger;
 
 public class HelperMethods {
 
-	private Logger _log = Logger.getLogger("Minecraft"); // Write debug info to console
+	//private Logger _log = Logger.getLogger("Minecraft"); // Write debug info to console
 	
 	// Format seconds into a "00:00:00" string
 	// If hours exceeds 24, the format will be "5d 00:00:00" 

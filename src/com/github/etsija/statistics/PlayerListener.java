@@ -1,7 +1,5 @@
 package com.github.etsija.statistics;
 
-import java.util.logging.Logger;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class PlayerListener implements Listener {
 
 	private final Statistics _plugin;
-	private Logger _log = Logger.getLogger("Minecraft"); // Write debug info to console
+	//private Logger _log = Logger.getLogger("Minecraft"); // Write debug info to console
 	
 	// This listener needs to know about the plugin which it came from
     public PlayerListener(Statistics plugin) {
@@ -48,10 +46,8 @@ public class PlayerListener implements Listener {
 		int x = (int) player.getLocation().getX();
 		int y = (int) player.getLocation().getY();
 		int z = (int) player.getLocation().getZ();
-		int idPlayer = 0;
 		int idLogin = 0;
 		
-		idPlayer = _plugin.sqlDb.readPlayerId(playerName);
 		idLogin  = _plugin.sqlDb.readLatestLoginId(playerName);
 		
 		// Update the login record for this player with the logout details

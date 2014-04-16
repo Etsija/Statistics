@@ -117,10 +117,21 @@ public class Statistics extends JavaPlugin {
 					if (target != null) {
 						// If the player is online
 						String playerName = target.getName();
+						String ipAddress  = target.getAddress().toString();
 						if (args.length == 2) {
-							showPlayerStats(sender, playerName, true, target.getFirstPlayed(), _showLoginsPerUser);
+							showPlayerStats(sender, 
+											playerName, 
+											true, 
+											ipAddress,
+											target.getFirstPlayed(), 
+											_showLoginsPerUser);
 						} else {
-							showPlayerStats(sender, playerName, true, target.getFirstPlayed(), Integer.parseInt(args[2]));
+							showPlayerStats(sender, 
+											playerName, 
+											true, 
+											ipAddress, 
+											target.getFirstPlayed(), 
+											Integer.parseInt(args[2]));
 						}
 						return true;
 					} else {
@@ -131,9 +142,19 @@ public class Statistics extends JavaPlugin {
 							// If the player is offline but has played on this server
 							if (playerName.equalsIgnoreCase(args[1])) {
 								if (args.length == 2) {
-									showPlayerStats(sender, playerName, false, thisPlayer.getFirstPlayed(), _showLoginsPerUser);
+									showPlayerStats(sender, 
+													playerName, 
+													false, 
+													"", 
+													thisPlayer.getFirstPlayed(), 
+													_showLoginsPerUser);
 								} else {
-									showPlayerStats(sender, playerName, false, thisPlayer.getFirstPlayed(), Integer.parseInt(args[2]));
+									showPlayerStats(sender, 
+													playerName, 
+													false, 
+													"", 
+													thisPlayer.getFirstPlayed(), 
+													Integer.parseInt(args[2]));
 								}
 								return true;
 							}
@@ -169,11 +190,22 @@ public class Statistics extends JavaPlugin {
 					   sender.hasPermission("statistics.stats.self")) {
 				Player player = (Player) sender;
 				String playerName = player.getName();
+				String ipAddress  = player.getAddress().toString();
 				if (args.length < 2) {
-					showPlayerStats(sender, playerName, true, player.getFirstPlayed(), _showLoginsPerUser);
+					showPlayerStats(sender, 
+									playerName, 
+									true, 
+									ipAddress, 
+									player.getFirstPlayed(), 
+									_showLoginsPerUser);
 					return true;
 				} else if (args.length == 2) {
-					showPlayerStats(sender, playerName, true, player.getFirstPlayed(), Integer.parseInt(args[1]));
+					showPlayerStats(sender, 
+									playerName, 
+									true, 
+									ipAddress, 
+									player.getFirstPlayed(), 
+									Integer.parseInt(args[1]));
 					return true;
 				}
 			}
@@ -196,7 +228,12 @@ public class Statistics extends JavaPlugin {
     }
 	
 	// Function to show the stats of one player, whether online or offline
-	public void showPlayerStats(CommandSender sender, String playerName, boolean isOnline, long firstPlayed, int nLogins) {
+	public void showPlayerStats(CommandSender sender, 
+								String playerName, 
+								boolean isOnline, 
+								String ipAddress, 
+								long firstPlayed, 
+								int nLogins) {
 		if (isOnline) {
 			int onlineTime = sqlDb.getOnlineTime(playerName);
 			sender.sendMessage("[Statistics] '" + getColor(playerName) + playerName + ChatColor.WHITE + "' is"
@@ -215,6 +252,9 @@ public class Statistics extends JavaPlugin {
 						 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName))
 						 + " " + getColor(playerName) + permission.getPrimaryGroup("", playerName));
 		sender.sendMessage("Joined: " + helper.unixTimeToString(firstPlayed));
+		if (isOnline) {
+			sender.sendMessage("IP: " + ipAddress);
+		}
 	}
 	
 	// Function to show one line of the newest players list
