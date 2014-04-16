@@ -118,22 +118,22 @@ public class Statistics extends JavaPlugin {
 						// If the player is online
 						String playerName = target.getName();
 						if (args.length == 2) {
-							showPlayerStats(sender, playerName, true, _showLoginsPerUser);
+							showPlayerStats(sender, playerName, true, target.getFirstPlayed(), _showLoginsPerUser);
 						} else {
-							showPlayerStats(sender, playerName, true, Integer.parseInt(args[2]));
+							showPlayerStats(sender, playerName, true, target.getFirstPlayed(), Integer.parseInt(args[2]));
 						}
 						return true;
 					} else {
 						// Find all players who have ever played on this server
 						OfflinePlayer [] allPlayers = Bukkit.getServer().getOfflinePlayers();
 						for (OfflinePlayer thisPlayer : allPlayers) {
-							String playerName = thisPlayer.getName();	
+							String playerName = thisPlayer.getName();
 							// If the player is offline but has played on this server
 							if (playerName.equalsIgnoreCase(args[1])) {
 								if (args.length == 2) {
-									showPlayerStats(sender, playerName, false, _showLoginsPerUser);
+									showPlayerStats(sender, playerName, false, thisPlayer.getFirstPlayed(), _showLoginsPerUser);
 								} else {
-									showPlayerStats(sender, playerName, false, Integer.parseInt(args[2]));
+									showPlayerStats(sender, playerName, false, thisPlayer.getFirstPlayed(), Integer.parseInt(args[2]));
 								}
 								return true;
 							}
@@ -170,10 +170,10 @@ public class Statistics extends JavaPlugin {
 				Player player = (Player) sender;
 				String playerName = player.getName();
 				if (args.length < 2) {
-					showPlayerStats(sender, playerName, true, _showLoginsPerUser);
+					showPlayerStats(sender, playerName, true, player.getFirstPlayed(), _showLoginsPerUser);
 					return true;
 				} else if (args.length == 2) {
-					showPlayerStats(sender, playerName, true, Integer.parseInt(args[1]));
+					showPlayerStats(sender, playerName, true, player.getFirstPlayed(), Integer.parseInt(args[1]));
 					return true;
 				}
 			}
@@ -196,7 +196,7 @@ public class Statistics extends JavaPlugin {
     }
 	
 	// Function to show the stats of one player, whether online or offline
-	public void showPlayerStats(CommandSender sender, String playerName, boolean isOnline, int nLogins) {
+	public void showPlayerStats(CommandSender sender, String playerName, boolean isOnline, long firstPlayed, int nLogins) {
 		if (isOnline) {
 			int onlineTime = sqlDb.getOnlineTime(playerName);
 			sender.sendMessage("[Statistics] '" + getColor(playerName) + playerName + ChatColor.WHITE + "' is"
@@ -214,6 +214,7 @@ public class Statistics extends JavaPlugin {
 						 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
 						 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName))
 						 + " " + getColor(playerName) + permission.getPrimaryGroup("", playerName));
+		sender.sendMessage("Joined: " + helper.unixTimeToString(firstPlayed));
 	}
 	
 	// Function to show one line of the newest players list

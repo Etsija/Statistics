@@ -1,5 +1,8 @@
 package com.github.etsija.statistics;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 public class HelperMethods {
@@ -31,5 +34,14 @@ public class HelperMethods {
 	        return "0" + number;
 	    }
 	    return String.valueOf(number);
-	}	
+	}
+	
+	// Format a Unix time (in milliseconds) to a 00-00-0000 00:00:00 format
+	public String unixTimeToString(long unixTime) {
+		Date date = new Date(unixTime);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT+2"));
+	
+		return sdf.format(date);
+	}
 }
