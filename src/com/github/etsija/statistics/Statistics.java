@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 
 public class Statistics extends JavaPlugin {
@@ -35,20 +36,8 @@ public class Statistics extends JavaPlugin {
 	private int _showNewestUsers;
 	private int _showLoginsPerUser;
 	public static Permission permission = null;
-	public enum Groups {
-	    newbie,
-	    prisoner,
-	    guest,
-	    normal,
-	    hungryplayer,
-	    survivor,
-	    sb,
-	    sy,
-	    vip,
-	    moderator,
-	    admin
-	}
-	
+	public static Chat chat = null;
+
 	public void onEnable() {
 		
 		// Initialize the configuration files
@@ -89,6 +78,7 @@ public class Statistics extends JavaPlugin {
 		sqlDb.createTables();
 		new PlayerListener(this);
 		setupPermissions();
+		setupChat();
 		_log.info("[Statistics] enabled!");
 	}
 	
@@ -217,7 +207,7 @@ public class Statistics extends JavaPlugin {
 	// Some helper methods
 	//////////////////////////////////////
 	
-	// Hook up to the Permissions plugin used (PEX; to read the Permission group of a player later on)
+	// Hook up to the Permissions plugin used
 	private boolean setupPermissions()
     {
         RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
@@ -227,6 +217,16 @@ public class Statistics extends JavaPlugin {
         return (permission != null);
     }
 	
+	// Hook up to the Chat plugin used
+	private boolean setupChat()
+	{
+		RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+	    if (chatProvider != null) {
+	        chat = chatProvider.getProvider();
+	    }
+	    return (chat != null);
+	}
+	
 	// Function to show the stats of one player, whether online or offline
 	public void showPlayerStats(CommandSender sender, 
 								String playerName, 
@@ -234,23 +234,28 @@ public class Statistics extends JavaPlugin {
 								String ipAddress, 
 								long firstPlayed, 
 								int nLogins) {
+		String group = permission.getPrimaryGroup("", playerName);	// Player's permission group
+		String color = chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
+		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
+		
 		if (isOnline) {
 			int onlineTime = sqlDb.getOnlineTime(playerName);
-			sender.sendMessage("[Statistics] '" + getColor(playerName) + playerName + ChatColor.WHITE + "' is"
+			sender.sendMessage("[Statistics] '" + chatColorGroup + playerName + ChatColor.WHITE + "' is"
 							 + ChatColor.GREEN + " [ONLINE since "
 						     + helper.timeFormatted(onlineTime) + "]");
 		} else {
-			sender.sendMessage("[Statistics] '" + getColor(playerName) + playerName + ChatColor.WHITE + "' is"
+			sender.sendMessage("[Statistics] '" + chatColorGroup + playerName + ChatColor.WHITE + "' is"
 					         + ChatColor.RED + " [OFFLINE]");
 		}
 		List<String> loginList = sqlDb.readLoginInfo(playerName, nLogins);
 		for (String str : loginList) {
 			sender.sendMessage(ChatColor.DARK_GREEN + str);
 		}
+		
 		sender.sendMessage("Logins: " + sqlDb.getTotalLogins(playerName)
 						 + " Tot: " + helper.timeFormatted(sqlDb.getTotalPlaytime(playerName))
 						 + " Avg: " + helper.timeFormatted(sqlDb.getAvgPlaytime(playerName))
-						 + " " + getColor(playerName) + permission.getPrimaryGroup("", playerName));
+						 + " " + chatColorGroup + group);
 		sender.sendMessage("Joined: " + helper.unixTimeToString(firstPlayed));
 		if (isOnline) {
 			sender.sendMessage("IP: " + ipAddress);
@@ -264,6 +269,7 @@ public class Statistics extends JavaPlugin {
 		String time = temp[1];
 		String onlineTime = "";
 		String playerName = "";
+		
 		if (temp.length == 4) {  // Player is offline
 			onlineTime = temp[2];
 			playerName = temp[3];
@@ -272,63 +278,23 @@ public class Statistics extends JavaPlugin {
 			playerName = temp[5];
 		}
 		
+		String group = permission.getPrimaryGroup("", playerName);	// Player's permission group
+		String color = chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
+		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
+		
 		if (onlineTime.contains("ONLINE")) {
 			sender.sendMessage(ChatColor.DARK_GREEN + date + " "
 							 + time + " "
 							 + onlineTime + " "
-							 + getColor(playerName) + playerName);
+							 + chatColorGroup + playerName);
 		} else {
 			sender.sendMessage(ChatColor.DARK_GREEN + date + " "
 					 		 + time + " "
 					 		 + ChatColor.RED + onlineTime + " "
-					 		 + getColor(playerName) + playerName);
+					 		 + chatColorGroup + playerName);
 		}
 	}
-	
-	// Return the correct chat color based on the group of the player
-	ChatColor getColor(String playerName) {
-		ChatColor retColor = ChatColor.WHITE;
-		String temp  = permission.getPrimaryGroup("", playerName);
-		Groups group = Groups.valueOf(temp.toLowerCase());
-		
-		switch (group) {
-	    	case newbie:
-	    		retColor = ChatColor.YELLOW;
-	    		break;
-	    	case prisoner:
-	    		retColor = ChatColor.DARK_GRAY;
-	    		break;
-	    	case guest:
-	    		retColor = ChatColor.GRAY;
-	    		break;
-	    	case normal:
-	    		retColor = ChatColor.GREEN;
-	    		break;
-	    	case hungryplayer:
-	    	case survivor:
-	    		retColor = ChatColor.LIGHT_PURPLE;
-	    		break;
-	    	case sb:
-	    		retColor = ChatColor.AQUA;
-	    		break;
-	    	case sy:
-	    		retColor = ChatColor.YELLOW;
-	    		break;
-	    	case vip:
-	    		retColor = ChatColor.DARK_AQUA;
-	    		break;
-	    	case moderator:
-	    		retColor = ChatColor.DARK_PURPLE;
-	    		break;
-	    	case admin:
-	    		retColor = ChatColor.RED;
-	    		break;
-	    	default:
-	    		retColor = ChatColor.WHITE;
-		}
-		return retColor;
-	}
-	
+
 	//////////////////////////////////////
 	// Plugin's file configuration methods
 	//////////////////////////////////////
