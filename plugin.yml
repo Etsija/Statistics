@@ -1,7 +1,7 @@
 name: Statistics
 main: com.github.etsija.statistics.Statistics
 version: 0.1
-depend: [Vault]
+depend: [Vault, SQLibrary]
 commands:
    stats:
       description: This command gives some stats of a player
