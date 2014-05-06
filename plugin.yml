@@ -1,10 +1,10 @@
 name: Statistics
 main: com.github.etsija.statistics.Statistics
-version: 0.1
+version: 0.2
 depend: [Vault, SQLibrary]
 commands:
    stats:
       description: This command gives some stats of a player
-      usage: /<command> [user/newest/self]
+      usage: /<command> [user/self/new/newp/since]
       permission: statistics.stats
       permission-message: You don't have <permission> permission.

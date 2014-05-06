@@ -130,21 +130,17 @@ public class SqlFuncs {
 		return idLogin;
 	}
 	
-	// Function for reading at maximum the latest n valid entries of the login info of a player
+	// Function for reading the login info of a player
 	// Valid: times, coords etc. cannot be null
-	public List<String> readLoginInfo(String playerName, int n) {
-		int count = 0;
-		if (n < 1) {
-			n = 1;
-		}
+	public List<String> readLoginInfo(String playerName) {
 		List<String> retList = new ArrayList<String>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT login.* FROM player, login "
 									   + "WHERE player.playername = '" + playerName + "' "
 							           + "AND player.id = login.id_player "
 									   + "AND login.time_logout NOT NULL "
-							           + "ORDER BY login.time_login DESC LIMIT " + n + ";");
-			while (rs.next() && (count < n)) {
+									   + "ORDER BY login.time_login DESC;");
+			while (rs.next()) {
 				try {
 					String timeLogin  = rs.getString("time_login");
 					String timeOnline = helper.timeFormatted(rs.getInt("time_online"));
@@ -155,7 +151,6 @@ public class SqlFuncs {
 					String retString  = timeLogin + " [" + timeOnline + "] ("
 									  + world + "," + x + "," + y + "," + z + ")";
 					retList.add(retString);
-					count++;
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -166,21 +161,76 @@ public class SqlFuncs {
 		return retList;
 	}
 	
-	// Function for finding n latest players who have logged out from the server
-	public List<String> readNewestLogins(int n) {
-		int count = 0;
-		if (n < 1) {
-			n = 1;
+	// Function for reading the login table into a list
+	public List<String> readLogins() {
+		List<String> retList = new ArrayList<String>();
+		try {
+			ResultSet rs = _sqLite.query("SELECT login.*, player.playername as playername FROM player, login "
+									   + "WHERE player.id = login.id_player "
+									   + "ORDER BY time_login DESC;");
+			while (rs.next()) {
+				try {
+					String retString = "";
+					String playerName = rs.getString("playername");
+					String timeLogin  = rs.getString("time_login");
+					int timeOnline    = rs.getInt("time_online");
+					if (timeOnline > 0) {
+						retString = String.format("%s [%s] %s", timeLogin, helper.timeFormatted(timeOnline), playerName);
+					} else {
+						retString = String.format("%s [ ONLINE ] %s", timeLogin, playerName);
+					}
+					retList.add(retString);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
+		return retList;
+	}
+	
+	// Function for finding logins since a given date and time
+	public List<String> readLoginsSince(String since) {
+		List<String> retList = new ArrayList<String>();
+		try {
+			ResultSet rs = _sqLite.query("SELECT login.*, player.playername as playername FROM player, login "
+									   + "WHERE player.id = login.id_player "
+									   + "AND login.time_login > '" + since + "' "
+									   + "ORDER BY time_login DESC;");
+			while (rs.next()) {
+				try {
+					String retString = "";
+					String playerName = rs.getString("playername");
+					String timeLogin  = rs.getString("time_login");
+					int timeOnline    = rs.getInt("time_online");
+					if (timeOnline > 0) {
+						retString = String.format("%s [%s] %s", timeLogin, helper.timeFormatted(timeOnline), playerName);
+					} else {
+						retString = String.format("%s [ ONLINE ] %s", timeLogin, playerName);
+					}
+					retList.add(retString);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return retList;
+	}
+	
+	// Function for finding all players who have logged into the server, newest first
+	public List<String> readNewestPlayers() {
 		List<String> retList = new ArrayList<String>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT p.playername AS name, j.newest as newest, j.time_online as online FROM player AS p JOIN "
 									   + " (SELECT id, id_player, max(time_login) AS newest, time_online "
 									   + "  FROM login "
 									   + "  GROUP BY id_player "
-									   + "  ORDER BY time_login DESC LIMIT " + n + ") AS j "
+									   + "ORDER BY time_login DESC) AS j "
 									   + "WHERE p.id = j.id_player;");
-			while (rs.next() && (count < n)) {
+			while (rs.next()) {
 				try {
 					String retString = "";
 					String playerName = rs.getString("name");
@@ -192,7 +242,6 @@ public class SqlFuncs {
 						retString = String.format("%s [ ONLINE ] %s", timeLogin, playerName);
 					}
 					retList.add(retString);
-					count++;
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -228,24 +277,43 @@ public class SqlFuncs {
 	}
 	
 	// Get the total number of logins of a player
+	// If playerName = "", get the total number of logins in the whole login table
 	public int getTotalLogins(String playerName) {
 		int totalLogins = 0;
-		try {
-			ResultSet rs = _sqLite.query("SELECT count(time_login) "
-									   + "AS total_logins "
-									   + "FROM player, login "
-									   + "WHERE player.playername = '" + playerName + "' "
-									   + "AND player.id = login.id_player;");
-			if (rs.next()) {
-				try {
-					totalLogins = rs.getInt("total_logins");
-				} catch (SQLException e) {
-					e.printStackTrace();
+		
+		if (helper.isNotEmpty(playerName)) {
+			try {
+				ResultSet rs = _sqLite.query("SELECT count(time_login) "
+										   + "AS total_logins "
+										   + "FROM player, login "
+										   + "WHERE player.playername = '" + playerName + "' "
+										   + "AND player.id = login.id_player;");
+				if (rs.next()) {
+					try {
+						totalLogins = rs.getInt("total_logins");
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
 				}
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}		
+		} else if (helper.isEmpty(playerName)) {
+			try {
+				ResultSet rs = _sqLite.query("SELECT count(time_login) "
+										   + "AS total_logins "
+										   + "FROM login;");
+				if (rs.next()) {
+					try {
+						totalLogins = rs.getInt("total_logins");
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 		return totalLogins;
 	}
 	

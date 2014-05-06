@@ -1,2 +1,1 @@
-show_newest_users: 5
-show_logins_per_user: 5
+lists_per_page: 10

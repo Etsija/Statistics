@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +34,13 @@ public class Statistics extends JavaPlugin {
 	public static Statistics plugin;
 	SqlFuncs sqlDb;											// Used to access the SqlFuncs class (= the database handling methods)
 	HelperMethods helper = new HelperMethods();				// Helper class with various methods
-	private int _showNewestUsers;
-	private int _showLoginsPerUser;
+	private int _listsPerPage;
 	public static Permission permission = null;
 	public static Chat chat = null;
-
+	public enum ListType {
+		SINCE, NEW, NEWP
+	}
+	
 	public void onEnable() {
 		
 		// Initialize the configuration files
@@ -57,8 +60,7 @@ public class Statistics extends JavaPlugin {
 		        
 		// Set the default parameter values
 		final Map<String, Object> configParams = new HashMap<String, Object>();
-		configParams.put("show_newest_users", 5);
-		configParams.put("show_logins_per_user", 5);
+		configParams.put("lists_per_page", 10);
 		setDefaultValues(config, configParams);
 				
 		// And save them to the files, if they don't already contain such parameters
@@ -66,8 +68,7 @@ public class Statistics extends JavaPlugin {
 		saveYaml(configFile, config);
 				
 		// Finally, import all needed config params from the corresponding config files
-		_showLoginsPerUser = config.getInt("show_logins_per_user");
-		_showNewestUsers   = config.getInt("show_newest_users");
+		_listsPerPage = config.getInt("lists_per_page");
 		
 		sqlDb = new SqlFuncs(plugin, 
 							 this._log, 
@@ -93,15 +94,28 @@ public class Statistics extends JavaPlugin {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		
 		// Command /stats
-		if (cmd.getName().equalsIgnoreCase("stats") &&
+		if (cmd.getName().equalsIgnoreCase("stats")
 			//sender.hasPermission("statistics.stats") &&
-			args.length > 0) {
+			) {
 			
-			// /stats user [playername] | /stats user [playername] {n}
+			if (args.length == 0) {
+				sender.sendMessage("[Statistics] Commands:");
+				sender.sendMessage(ChatColor.RED + "/stats user [player]" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats user [player] {page}");
+				sender.sendMessage(ChatColor.YELLOW + "Statistics for a player");
+				sender.sendMessage(ChatColor.RED + "/stats self" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats self {page}");
+				sender.sendMessage(ChatColor.YELLOW + "Statistics for yourself");
+				sender.sendMessage(ChatColor.RED + "/stats newp" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats newp {page}");
+				sender.sendMessage(ChatColor.YELLOW + "Newest players logged into the server");
+				sender.sendMessage(ChatColor.RED + "/stats new" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats new {page}");
+				sender.sendMessage(ChatColor.YELLOW + "All newest logins to the server");
+				return true;
+			}
+			
+			// /stats user [player] | /stats user [player] {page}
 			if (args[0].equalsIgnoreCase("user") &&
 				sender.hasPermission("statistics.stats.user")) {
 				if (args.length < 2) {
-					sender.sendMessage("[Statistics] Usage: /stats user [playername] {n}");
+					sender.sendMessage("[Statistics] Usage: /stats user [player] {page}");
 				} else {
 					Player target = Bukkit.getServer().getPlayer(args[1]);
 					if (target != null) {
@@ -114,14 +128,16 @@ public class Statistics extends JavaPlugin {
 											true, 
 											ipAddress,
 											target.getFirstPlayed(), 
-											_showLoginsPerUser);
+											1,
+											_listsPerPage);
 						} else {
 							showPlayerStats(sender, 
 											playerName, 
 											true, 
 											ipAddress, 
 											target.getFirstPlayed(), 
-											Integer.parseInt(args[2]));
+											Integer.parseInt(args[2]),
+											_listsPerPage);
 						}
 						return true;
 					} else {
@@ -137,14 +153,16 @@ public class Statistics extends JavaPlugin {
 													false, 
 													"", 
 													thisPlayer.getFirstPlayed(), 
-													_showLoginsPerUser);
+													1,
+													_listsPerPage);
 								} else {
 									showPlayerStats(sender, 
 													playerName, 
 													false, 
 													"", 
 													thisPlayer.getFirstPlayed(), 
-													Integer.parseInt(args[2]));
+													Integer.parseInt(args[2]),
+													_listsPerPage);
 								}
 								return true;
 							}
@@ -154,26 +172,42 @@ public class Statistics extends JavaPlugin {
 						return true;
 					}
 				}
-				
-			// /stats newest | /stats newest {n}
-			} else if (args[0].equalsIgnoreCase("newest") &&
-					   sender.hasPermission("statistics.stats.newest")) {
+			
+			// /stats new | /stats new {page}
+			} else if (args[0].equalsIgnoreCase("new") &&
+					   sender.hasPermission("statistics.stats.new")) {
 				if (args.length < 2) {
-					List<String> newestList = sqlDb.readNewestLogins(_showNewestUsers);
-					sender.sendMessage("[Statistics] Latest " + newestList.size() + " visitors:");
-					for (String str : newestList) {
-						showNewestStats(sender, str);
-					}
-					return true;
+					showLoginStats(sender,
+							   	   ListType.NEW,
+							   	   "",
+							   	   1,
+							   	   _listsPerPage);
 				} else if (args.length == 2) {
-					int howMany = Integer.parseInt(args[1]);
-					List<String> newestList = sqlDb.readNewestLogins(howMany);
-					sender.sendMessage("[Statistics] Latest " + newestList.size() + " visitors:");
-					for (String str : newestList) {
-						showNewestStats(sender, str);
-					}
-					return true;
+					showLoginStats(sender,
+						   	   	   ListType.NEW,
+						   	   	   "",
+						   	   	   Integer.parseInt(args[1]),
+						   	   	   _listsPerPage);	
 				}
+				return true;
+				
+			// /stats newp | /stats newp {n}
+			} else if (args[0].equalsIgnoreCase("newp") &&
+					   sender.hasPermission("statistics.stats.newp")) {
+				if (args.length < 2) {
+					showLoginStats(sender,
+						   	   ListType.NEWP,
+						   	   "",
+						   	   1,
+						   	   _listsPerPage);
+				} else if (args.length == 2) {
+					showLoginStats(sender,
+					   	   	   ListType.NEWP,
+					   	   	   "",
+					   	   	   Integer.parseInt(args[1]),
+					   	   	   _listsPerPage);
+				}
+				return true;
 			
 			// /stats self | /stats self {n}
 			} else if (args[0].equalsIgnoreCase("self") &&
@@ -187,17 +221,42 @@ public class Statistics extends JavaPlugin {
 									true, 
 									ipAddress, 
 									player.getFirstPlayed(), 
-									_showLoginsPerUser);
-					return true;
+									1,
+									_listsPerPage);
 				} else if (args.length == 2) {
 					showPlayerStats(sender, 
 									playerName, 
 									true, 
 									ipAddress, 
 									player.getFirstPlayed(), 
-									Integer.parseInt(args[1]));
-					return true;
+									Integer.parseInt(args[1]),
+									_listsPerPage);
 				}
+				return true;
+			
+			// /stats since [time] | /stats since [time] {n}
+			} else if (args[0].equalsIgnoreCase("since") &&
+					   sender.hasPermission("statistics.stats.since")) {
+				Player player = (Player) sender;
+				if (args.length < 2) {
+					player.sendMessage("[Statistics] Usage: /stats since [1d12h30m40s] {page}");
+					return true;
+				} else if (args.length == 2) {
+					String since = helper.parseSince(args[1]);
+					showLoginStats(sender,
+						   	   	   ListType.SINCE,
+						   	   	   since,
+						   	   	   1,
+						   	   	   _listsPerPage);
+				} else if (args.length == 3) {
+					String since = helper.parseSince(args[1]);
+					showLoginStats(sender,
+					   	   	   	   ListType.SINCE,
+					   	   	   	   since,
+					   	   	   	   Integer.parseInt(args[2]),
+					   	   	   	   _listsPerPage);
+				}
+				return true;
 			}
 		}
 		return false;
@@ -233,22 +292,29 @@ public class Statistics extends JavaPlugin {
 								boolean isOnline, 
 								String ipAddress, 
 								long firstPlayed, 
-								int nLogins) {
+								int page,
+								int itemsPerPage) {
 		String group = permission.getPrimaryGroup("", playerName);	// Player's permission group
 		String color = chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
+		
+		List<String> rawList = sqlDb.readLoginInfo(playerName);
+		ListPage pList = paginate(rawList, page, itemsPerPage);
+		int nPages = helper.nPages(rawList.size(), itemsPerPage);
 		
 		if (isOnline) {
 			int onlineTime = sqlDb.getOnlineTime(playerName);
 			sender.sendMessage("[Statistics] '" + chatColorGroup + playerName + ChatColor.WHITE + "' is"
 							 + ChatColor.GREEN + " [ONLINE since "
-						     + helper.timeFormatted(onlineTime) + "]");
+						     + helper.timeFormatted(onlineTime) + "] "
+						     + "(Page " + pList.getPage() + "/" + nPages + ")");
 		} else {
 			sender.sendMessage("[Statistics] '" + chatColorGroup + playerName + ChatColor.WHITE + "' is"
-					         + ChatColor.RED + " [OFFLINE]");
+					         + ChatColor.RED + " [OFFLINE] "
+						     + "(Page " + pList.getPage() + "/" + nPages + ")");
 		}
-		List<String> loginList = sqlDb.readLoginInfo(playerName, nLogins);
-		for (String str : loginList) {
+		
+		for (String str : pList.getList()) {
 			sender.sendMessage(ChatColor.DARK_GREEN + str);
 		}
 		
@@ -262,15 +328,57 @@ public class Statistics extends JavaPlugin {
 		}
 	}
 	
+	// Function to show login stats
+	public void showLoginStats(CommandSender sender,
+							   ListType type,
+							   String since,
+							   int page,
+							   int itemsPerPage) {
+		List<String> rawList = new ArrayList<String>();
+		ListPage pList = new ListPage();
+		int nPages = 0;
+		
+		switch (type) {
+			case NEW:
+				rawList = sqlDb.readLogins();
+				pList = paginate(rawList, page, itemsPerPage);
+				nPages = helper.nPages(rawList.size(), itemsPerPage);
+				sender.sendMessage("[Statistics] Latest " + itemsPerPage 
+						 + " logins (Page " + pList.getPage() + "/" + nPages + ")");
+				break;
+				
+			case NEWP:
+				rawList = sqlDb.readNewestPlayers();
+				pList = paginate(rawList, page, itemsPerPage);
+				nPages = helper.nPages(rawList.size(), itemsPerPage);
+				sender.sendMessage("[Statistics] Latest " + itemsPerPage
+						 + " players (Page " + pList.getPage() + "/" + nPages + ")");
+				break;
+				
+			case SINCE:
+				rawList = sqlDb.readLoginsSince(since);
+				pList = paginate(rawList, page, itemsPerPage);
+				nPages = helper.nPages(rawList.size(), itemsPerPage);
+				sender.sendMessage("[Statistics] Logins since " + since
+						 + " (Page " + pList.getPage() + "/" + nPages + ")");
+				break;
+		}
+		
+		for (String str : pList.getList()) {
+			showOneLogin(sender, str);
+		}
+		
+	}
+	
 	// Function to show one line of the newest players list
-	public void showNewestStats(CommandSender sender, String theLine) {
+	public void showOneLogin(CommandSender sender, String theLine) {
 		String[] temp = theLine.split("\\s+");
 		String date = temp[0];
 		String time = temp[1];
 		String onlineTime = "";
 		String playerName = "";
 		
-		if (temp.length == 4) {  // Player is offline
+		if (temp.length == 4) {  		// Player is offline
 			onlineTime = temp[2];
 			playerName = temp[3];
 		} else if (temp.length == 6) {  // Player is online
@@ -294,7 +402,30 @@ public class Statistics extends JavaPlugin {
 					 		 + chatColorGroup + playerName);
 		}
 	}
-
+	
+	// Function to return a sub-list (page n) of a list of strings
+	public ListPage paginate(List<String> inputList, int page, int itemsPerPage) {
+		List<String> paginatedList = new ArrayList<String>();
+		int nItems = inputList.size();
+		int nPages = helper.nPages(nItems, itemsPerPage);
+		
+		if (page < 1) {
+			page = 1;
+		} else if (page > nPages) {
+			page = nPages;
+		}
+		
+		int start = (page - 1) * itemsPerPage;
+		int end   = page * itemsPerPage - 1;
+		if (end > nItems) {
+			end = nItems;
+		}
+		
+		paginatedList = inputList.subList(start, end);
+		ListPage retList = new ListPage(paginatedList, page);
+		return retList;
+	}
+	
 	//////////////////////////////////////
 	// Plugin's file configuration methods
 	//////////////////////////////////////
