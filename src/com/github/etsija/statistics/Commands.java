@@ -323,7 +323,7 @@ public class Commands implements CommandExecutor {
 		}
 		
 		int start = (page - 1) * itemsPerPage;
-		int end   = page * itemsPerPage - 1;
+		int end   =  page      * itemsPerPage;
 		if (end > nItems) {
 			end = nItems;
 		}

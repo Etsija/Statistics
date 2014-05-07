@@ -68,7 +68,7 @@ public class HelperMethods {
 	
 	// Function to calculate how many pages are needed for the output
 	public int nPages(int nTotal, int nPerPage) {
-		return (int)(nTotal / nPerPage + 1);
+		return ((int)(nTotal / nPerPage) + 1);
 	}
 
 	// Function to parse a string format such as "12d5h3m" into a time in the past
