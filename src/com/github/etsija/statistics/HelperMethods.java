@@ -1,7 +1,9 @@
 package com.github.etsija.statistics;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
@@ -103,6 +105,29 @@ public class HelperMethods {
 		
 		long now = System.currentTimeMillis();
 		return unixTimeToStringAccurate(now - seconds * 1000);
+	}
+	
+	// Function to return a sub-list (page n) of a list of strings
+	public ListPage paginate(List<String> inputList, int page, int itemsPerPage) {
+		List<String> paginatedList = new ArrayList<String>();
+		int nItems = inputList.size();
+		int nPages = nPages(nItems, itemsPerPage);
+		
+		if (page < 1) {
+			page = 1;
+		} else if (page > nPages) {
+			page = nPages;
+		}
+		
+		int start = (page - 1) * itemsPerPage;
+		int end   =  page      * itemsPerPage;
+		if (end > nItems) {
+			end = nItems;
+		}
+		
+		paginatedList = inputList.subList(start, end);
+		ListPage retList = new ListPage(paginatedList, page);
+		return retList;
 	}
 	
 }

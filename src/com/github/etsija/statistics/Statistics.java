@@ -23,15 +23,11 @@ public class Statistics extends JavaPlugin {
 	private Logger _log = Logger.getLogger("Minecraft"); 	// Write debug info to console
 	File configFile;										// config.yml
 	FileConfiguration config;								// configuration object for config.yml
-	//public static Statistics plugin;
 	SqlFuncs sqlDb;											// Used to access the SqlFuncs class (= the database handling methods)
-	HelperMethods helper = new HelperMethods();				// Helper class with various methods
-	int listsPerPage;
+	int listsPerPage;										// Config parameter
 	public static Permission permission = null;
 	public static Chat chat = null;
-	public enum ListType {
-		SINCE, NEW, NEWP
-	}
+
 	
 	public void onEnable() {
 		
