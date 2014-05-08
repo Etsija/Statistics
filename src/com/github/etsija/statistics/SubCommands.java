@@ -112,8 +112,8 @@ public class SubCommands {
 			long firstPlayed, 
 			int page,
 			int itemsPerPage) {
-		String group = plugin.permission.getPrimaryGroup("", playerName);	// Player's permission group
-		String color = plugin.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
+		String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
+		String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
 
 		List<String> rawList = plugin.sqlDb.readLoginInfo(playerName);
@@ -204,8 +204,8 @@ public class SubCommands {
 			playerName = temp[5];
 		}
 		
-		String group = plugin.permission.getPrimaryGroup("", playerName);	// Player's permission group
-		String color = plugin.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
+		String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
+		String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
 		
 		if (onlineTime.contains("ONLINE")) {
