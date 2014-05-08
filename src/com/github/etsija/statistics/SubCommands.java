@@ -100,7 +100,11 @@ public class SubCommands {
 		}
 	}
 	
-	// Function to show the stats of one player, whether online or offline
+	//////////////////////////////////////
+	// Helper methods
+	//////////////////////////////////////
+	
+	// Show stats of one player, whether online or offline
 	public void showPlayerStats(CommandSender sender, 
 			String playerName, 
 			boolean isOnline, 
@@ -121,11 +125,11 @@ public class SubCommands {
 			sender.sendMessage("[Statistics] '" + chatColorGroup + playerName + ChatColor.WHITE + "' is"
 							 + ChatColor.GREEN + " [ONLINE since "
 							 + helper.timeFormatted(onlineTime) + "] "
-							 + "(Page " + pList.getPage() + "/" + nPages + ")");
+							 + ChatColor.YELLOW + "(Page " + pList.getPage() + "/" + nPages + ")");
 		} else {
 			sender.sendMessage("[Statistics] '" + chatColorGroup + playerName + ChatColor.WHITE + "' is"
 							 + ChatColor.RED + " [OFFLINE] "
-							 + "(Page " + pList.getPage() + "/" + nPages + ")");
+							 + ChatColor.YELLOW + "(Page " + pList.getPage() + "/" + nPages + ")");
 		}
 
 		for (String str : pList.getList()) {
@@ -142,7 +146,7 @@ public class SubCommands {
 		}
 	}
 	
-	// Function to show login stats
+	// Show login stats
 	public void showLoginStats(CommandSender sender,
 							   ListType type,
 							   String since,
@@ -157,16 +161,16 @@ public class SubCommands {
 				rawList = plugin.sqlDb.readLogins();
 				pList = helper.paginate(rawList, page, itemsPerPage);
 				nPages = helper.nPages(rawList.size(), itemsPerPage);
-				sender.sendMessage("[Statistics] Latest " + itemsPerPage 
-						 + " logins (Page " + pList.getPage() + "/" + nPages + ")");
+				sender.sendMessage("[Statistics] Logins "
+								 + ChatColor.YELLOW + "(Page " + pList.getPage() + "/" + nPages + ")");
 				break;
 				
 			case NEWP:
 				rawList = plugin.sqlDb.readNewestPlayers();
 				pList = helper.paginate(rawList, page, itemsPerPage);
 				nPages = helper.nPages(rawList.size(), itemsPerPage);
-				sender.sendMessage("[Statistics] Latest " + itemsPerPage
-						 + " players (Page " + pList.getPage() + "/" + nPages + ")");
+				sender.sendMessage("[Statistics] Players "
+								 + ChatColor.YELLOW + "(Page " + pList.getPage() + "/" + nPages + ")");
 				break;
 				
 			case SINCE:
@@ -174,7 +178,7 @@ public class SubCommands {
 				pList = helper.paginate(rawList, page, itemsPerPage);
 				nPages = helper.nPages(rawList.size(), itemsPerPage);
 				sender.sendMessage("[Statistics] Logins since " + since
-						 + " (Page " + pList.getPage() + "/" + nPages + ")");
+						 		 + ChatColor.YELLOW + " (Page " + pList.getPage() + "/" + nPages + ")");
 				break;
 		}
 		
@@ -184,7 +188,7 @@ public class SubCommands {
 		
 	}
 	
-	// Function to show one line of the newest players list
+	// Show one line of the newest players list
 	public void showOneLogin(CommandSender sender, String theLine) {
 		String[] temp = theLine.split("\\s+");
 		String date = temp[0];

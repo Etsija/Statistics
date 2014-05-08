@@ -5,7 +5,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-// This is the main executor class for the ommands of this plugin
+// Main executor class for the ommands of this plugin
 public class Commands implements CommandExecutor {
 	Statistics plugin;
 	SubCommands subCmds;

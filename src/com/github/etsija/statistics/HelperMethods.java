@@ -68,13 +68,13 @@ public class HelperMethods {
 		return (s == null || s.equals(""));
 	}
 	
-	// Function to calculate how many pages are needed for the output
+	// Calculate # pages needed for the output
 	public int nPages(int nTotal, int nPerPage) {
 		return ((int)(nTotal / nPerPage) + 1);
 	}
 
-	// Function to parse a string format such as "12d5h3m" into a time in the past
-	// To be used with the "/stats since 12d5h3m" command
+	// Parse a string format such as "12d5h3m" into a time in the past
+	// To be used with the "/stats since" command
 	public String parseSince(String str) {
 		long seconds     = 0;
 		String strRemainder = str;
@@ -107,7 +107,7 @@ public class HelperMethods {
 		return unixTimeToStringAccurate(now - seconds * 1000);
 	}
 	
-	// Function to return a sub-list (page n) of a list of strings
+	// Return a sub-list (page "page") of a list of strings
 	public ListPage paginate(List<String> inputList, int page, int itemsPerPage) {
 		List<String> paginatedList = new ArrayList<String>();
 		int nItems = inputList.size();
@@ -129,5 +129,4 @@ public class HelperMethods {
 		ListPage retList = new ListPage(paginatedList, page);
 		return retList;
 	}
-	
 }

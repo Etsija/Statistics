@@ -83,7 +83,7 @@ public class Statistics extends JavaPlugin {
 	}
 	
 	//////////////////////////////////////
-	// Some helper methods
+	// Helper methods
 	//////////////////////////////////////
 	
 	// Hook up to the Permissions plugin used
