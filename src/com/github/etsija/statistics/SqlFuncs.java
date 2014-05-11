@@ -132,8 +132,8 @@ public class SqlFuncs {
 	
 	// Function for reading the login info of a player
 	// Valid: times, coords etc. cannot be null
-	public List<String> readLoginInfo(String playerName) {
-		List<String> retList = new ArrayList<String>();
+	public List<LoginEntry> readLoginInfo(String playerName) {
+		List<LoginEntry> retList = new ArrayList<LoginEntry>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT login.* FROM player, login "
 									   + "WHERE player.playername = '" + playerName + "' "
@@ -142,15 +142,14 @@ public class SqlFuncs {
 									   + "ORDER BY login.time_login DESC;");
 			while (rs.next()) {
 				try {
-					String timeLogin  = rs.getString("time_login");
-					String timeOnline = helper.timeFormatted(rs.getInt("time_online"));
-					String world      = rs.getString("world");
-					int x             = rs.getInt("x");
-					int y             = rs.getInt("y");
-					int z             = rs.getInt("z");
-					String retString  = timeLogin + " [" + timeOnline + "] ("
-									  + world + "," + x + "," + y + "," + z + ")";
-					retList.add(retString);
+					LoginEntry le = new LoginEntry(playerName,
+		   					   					   rs.getString("time_login"),
+		   					   					   rs.getInt("time_online"),
+		   					   					   rs.getString("world"),
+		   					   					   rs.getInt("x"),
+		   					   					   rs.getInt("y"),
+		   					   					   rs.getInt("z"));
+					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -162,24 +161,18 @@ public class SqlFuncs {
 	}
 	
 	// Function for reading the login table into a list
-	public List<String> readLogins() {
-		List<String> retList = new ArrayList<String>();
+	public List<LoginEntry> readLogins() {
+		List<LoginEntry> retList = new ArrayList<LoginEntry>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT login.*, player.playername as playername FROM player, login "
 									   + "WHERE player.id = login.id_player "
 									   + "ORDER BY time_login DESC;");
 			while (rs.next()) {
 				try {
-					String retString = "";
-					String playerName = rs.getString("playername");
-					String timeLogin  = rs.getString("time_login");
-					int timeOnline    = rs.getInt("time_online");
-					if (timeOnline > 0) {
-						retString = String.format("%s [%s] %s", timeLogin, helper.timeFormatted(timeOnline), playerName);
-					} else {
-						retString = String.format("%s [ ONLINE ] %s", timeLogin, playerName);
-					}
-					retList.add(retString);
+					LoginEntry le = new LoginEntry(rs.getString("playername"),
+							   					   rs.getString("time_login"),
+							   					   rs.getInt("time_online"));
+					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -191,8 +184,8 @@ public class SqlFuncs {
 	}
 	
 	// Function for finding logins since a given date and time
-	public List<String> readLoginsSince(String since) {
-		List<String> retList = new ArrayList<String>();
+	public List<LoginEntry> readLoginsSince(String since) {
+		List<LoginEntry> retList = new ArrayList<LoginEntry>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT login.*, player.playername as playername FROM player, login "
 									   + "WHERE player.id = login.id_player "
@@ -200,16 +193,10 @@ public class SqlFuncs {
 									   + "ORDER BY time_login DESC;");
 			while (rs.next()) {
 				try {
-					String retString = "";
-					String playerName = rs.getString("playername");
-					String timeLogin  = rs.getString("time_login");
-					int timeOnline    = rs.getInt("time_online");
-					if (timeOnline > 0) {
-						retString = String.format("%s [%s] %s", timeLogin, helper.timeFormatted(timeOnline), playerName);
-					} else {
-						retString = String.format("%s [ ONLINE ] %s", timeLogin, playerName);
-					}
-					retList.add(retString);
+					LoginEntry le = new LoginEntry(rs.getString("playername"),
+												   rs.getString("time_login"),
+												   rs.getInt("time_online"));
+					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -246,8 +233,8 @@ public class SqlFuncs {
 	}
 	
 	// Function for finding all players who have logged into the server, newest first
-	public List<String> readNewestPlayers() {
-		List<String> retList = new ArrayList<String>();
+	public List<LoginEntry> readNewestPlayers() {
+		List<LoginEntry> retList = new ArrayList<LoginEntry>();
 		try {
 			ResultSet rs = _sqLite.query("SELECT p.playername AS name, j.newest as newest, j.time_online as online FROM player AS p JOIN "
 									   + " (SELECT id, id_player, max(time_login) AS newest, time_online "
@@ -257,16 +244,10 @@ public class SqlFuncs {
 									   + "WHERE p.id = j.id_player;");
 			while (rs.next()) {
 				try {
-					String retString = "";
-					String playerName = rs.getString("name");
-					String timeLogin  = rs.getString("newest");
-					int timeOnline    = rs.getInt("online");
-					if (timeOnline > 0) {
-						retString = String.format("%s [%s] %s", timeLogin, helper.timeFormatted(timeOnline), playerName);
-					} else {
-						retString = String.format("%s [ ONLINE ] %s", timeLogin, playerName);
-					}
-					retList.add(retString);
+					LoginEntry le = new LoginEntry(rs.getString("name"), 
+							   					   rs.getString("newest"), 
+							   					   rs.getInt("online"));
+					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
