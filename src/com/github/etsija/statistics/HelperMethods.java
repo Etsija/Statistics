@@ -107,9 +107,9 @@ public class HelperMethods {
 		return unixTimeToStringAccurate(now - seconds * 1000);
 	}
 	
-	// Return a sub-list (page "page") of a list of strings
-	public ListPage paginate(List<String> inputList, int page, int itemsPerPage) {
-		List<String> paginatedList = new ArrayList<String>();
+	// Return a sub-list (page "page") of a list of Objects
+	public <T> ListPage<T> paginate(List<T> inputList, int page, int itemsPerPage) {
+		List<T> paginatedList = new ArrayList<T>();
 		int nItems = inputList.size();
 		int nPages = nPages(nItems, itemsPerPage);
 		
@@ -126,7 +126,7 @@ public class HelperMethods {
 		}
 		
 		paginatedList = inputList.subList(start, end);
-		ListPage retList = new ListPage(paginatedList, page);
+		ListPage<T> retList = new ListPage<T>(paginatedList, page);
 		return retList;
 	}
 }

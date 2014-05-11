@@ -81,6 +81,16 @@ public class Commands implements CommandExecutor {
 				}
 				subCmds.cmdStatsSince(sender, args);
 				return true;
+			
+			// /stats date [date] {page}
+			} else if (args[0].equalsIgnoreCase("date") &&
+					   sender.hasPermission("statistics.stats.date")) {
+				if (args.length < 2) {
+					sender.sendMessage("[Statistics] Usage: /stats date [yyyy-mm-dd] {page}");
+					return true;
+				}
+				subCmds.cmdStatsDate(sender, args);
+				return true;
 			}
 		}
 		return false;

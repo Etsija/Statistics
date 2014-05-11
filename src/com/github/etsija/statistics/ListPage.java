@@ -3,20 +3,21 @@ package com.github.etsija.statistics;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListPage {
-	private List<String> list;
+// A generic class for a list of Objects, along with the page
+public class ListPage <T> {
+	private List<T> list;
 	private int page;
 	
-	public ListPage() {
+	ListPage() {
 		
 	}
 	
-	public ListPage(List<String> list, int page) {
-		this.list = new ArrayList<String>(list);
+	public ListPage(List<T> list, int page) {
+		this.list = new ArrayList<T>(list);
 		this.page = page;
 	}
 	
-	public void setList(List<String> list) {
+	public void setList(List<T> list) {
 		this.list = list;
 	}
 	
@@ -24,7 +25,7 @@ public class ListPage {
 		this.page = page;
 	}
 	
-	public List<String> getList() {
+	public List<T> getList() {
 		return this.list;
 	}
 	

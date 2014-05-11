@@ -220,6 +220,31 @@ public class SqlFuncs {
 		return retList;
 	}
 	
+	// Function for finding logins on a given date
+	public List<LoginEntry> readLoginsDate(String date) {
+		List<LoginEntry> retList = new ArrayList<LoginEntry>();
+		try {
+			ResultSet rs = _sqLite.query("SELECT login.*, player.playername as playername FROM player, login "
+									   + "WHERE player.id = login.id_player "
+									   + "AND date(login.time_login) = '" + date + "' "
+									   + "AND login.time_logout NOT NULL "
+									   + "ORDER BY time_login DESC;");
+			while (rs.next()) {
+				try {
+					LoginEntry le = new LoginEntry(rs.getString("playername"), 
+												   rs.getString("time_login"), 
+												   rs.getInt("time_online"));
+					retList.add(le);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return retList;
+	}
+	
 	// Function for finding all players who have logged into the server, newest first
 	public List<String> readNewestPlayers() {
 		List<String> retList = new ArrayList<String>();

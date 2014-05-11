@@ -100,6 +100,19 @@ public class SubCommands {
 		}
 	}
 	
+	// /stats date [date] {page}
+	public void cmdStatsDate(CommandSender sender, String[] args) {
+		if (args.length == 2) {
+			String date = args[1];
+			showLoginStatsDate(sender, date, 1, plugin.listsPerPage);
+			
+		} else if (args.length == 3) {
+			String date = args[1];
+			int page = Integer.parseInt(args[2]);
+			showLoginStatsDate(sender, date, page, plugin.listsPerPage);
+		}
+	}
+	
 	//////////////////////////////////////
 	// Helper methods
 	//////////////////////////////////////
@@ -117,7 +130,7 @@ public class SubCommands {
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
 
 		List<String> rawList = plugin.sqlDb.readLoginInfo(playerName);
-		ListPage pList = helper.paginate(rawList, page, itemsPerPage);
+		ListPage<String> pList = helper.paginate(rawList, page, itemsPerPage);
 		int nPages = helper.nPages(rawList.size(), itemsPerPage);
 
 		if (isOnline) {
@@ -153,7 +166,7 @@ public class SubCommands {
 							   int page,
 							   int itemsPerPage) {
 		List<String> rawList = new ArrayList<String>();
-		ListPage pList = new ListPage();
+		ListPage<String> pList = new ListPage<String>();
 		int nPages = 0;
 		
 		switch (type) {
@@ -186,6 +199,44 @@ public class SubCommands {
 			showOneLogin(sender, str);
 		}
 		
+	}
+	
+	// Show login stats of one day
+	public void showLoginStatsDate(CommandSender sender,
+							   	  String date,
+							   	  int page,
+							   	  int itemsPerPage) {
+		int totalTimeOnline = 0;
+		List<LoginEntry> rawList = plugin.sqlDb.readLoginsDate(date);
+		if (rawList.size() == 0) {
+			sender.sendMessage("[Statistics] Sorry, no logins on that date.");
+			return;
+		}
+		ListPage<LoginEntry> pList = helper.paginate(rawList, page, itemsPerPage);
+		int nPages = helper.nPages(rawList.size(), itemsPerPage);
+
+		sender.sendMessage("[Statistics] Logins at " + date
+		 		 		 + ChatColor.YELLOW + " (Page " + pList.getPage() + "/" + nPages + ")");		
+	
+		for (LoginEntry e : rawList) {
+			totalTimeOnline += e.getTimeOnline();
+		}
+		
+		for (LoginEntry e : pList.getList()) {
+			String playerName = e.getPlayerName();
+			String timeLogin = e.getTimeLogin();
+			String timeOnline = e.getTimeOnlineAsString();
+			String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
+			String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
+			ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
+			sender.sendMessage(ChatColor.DARK_GREEN + timeLogin + " "
+			 		 		 + ChatColor.RED + timeOnline + " "
+			 		 		 + chatColorGroup + playerName);
+		}
+
+		sender.sendMessage("Logins: " + rawList.size()
+						 + " Tot: " + helper.timeFormatted(totalTimeOnline)
+						 + " Avg: " + helper.timeFormatted((int)(totalTimeOnline / rawList.size())));
 	}
 	
 	// Show one line of the newest players list
