@@ -9,7 +9,6 @@ public class ListPage <T> {
 	private int page;
 	
 	ListPage() {
-		
 	}
 	
 	public ListPage(List<T> list, int page) {

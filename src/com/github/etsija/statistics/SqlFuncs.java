@@ -10,7 +10,6 @@ import lib.PatPeter.SQLibrary.SQLite;
 
 public class SqlFuncs {
 	private SQLite _sqLite;		// Used to access the database
-	//private Logger _log = Logger.getLogger("Minecraft"); // Write debug info to console
 	HelperMethods helper = new HelperMethods();
 	
 	// Function for initialising a connection to the database / creating it

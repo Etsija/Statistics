@@ -129,8 +129,8 @@ public class SubCommands {
 		String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
 
-		List<String> rawList = plugin.sqlDb.readLoginInfo(playerName);
-		ListPage<String> pList = helper.paginate(rawList, page, itemsPerPage);
+		List<LoginEntry> rawList = plugin.sqlDb.readLoginInfo(playerName);
+		ListPage<LoginEntry> pList = helper.paginate(rawList, page, itemsPerPage);
 		int nPages = helper.nPages(rawList.size(), itemsPerPage);
 
 		if (isOnline) {
@@ -145,8 +145,8 @@ public class SubCommands {
 							 + ChatColor.YELLOW + "(Page " + pList.getPage() + "/" + nPages + ")");
 		}
 
-		for (String str : pList.getList()) {
-			sender.sendMessage(ChatColor.DARK_GREEN + str);
+		for (LoginEntry e : pList.getList()) {
+			showPlayerLogin(sender, e);
 		}
 
 		sender.sendMessage("Logins: " + plugin.sqlDb.getTotalLogins(playerName)
@@ -165,8 +165,8 @@ public class SubCommands {
 							   String since,
 							   int page,
 							   int itemsPerPage) {
-		List<String> rawList = new ArrayList<String>();
-		ListPage<String> pList = new ListPage<String>();
+		List<LoginEntry> rawList = new ArrayList<LoginEntry>();
+		ListPage<LoginEntry> pList = new ListPage<LoginEntry>();
 		int nPages = 0;
 		
 		switch (type) {
@@ -195,8 +195,8 @@ public class SubCommands {
 				break;
 		}
 		
-		for (String str : pList.getList()) {
-			showOneLogin(sender, str);
+		for (LoginEntry e : pList.getList()) {
+			showLoginEntry(sender, e);
 		}
 		
 	}
@@ -223,15 +223,7 @@ public class SubCommands {
 		}
 		
 		for (LoginEntry e : pList.getList()) {
-			String playerName = e.getPlayerName();
-			String timeLogin = e.getTimeLogin();
-			String timeOnline = e.getTimeOnlineAsString();
-			String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
-			String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
-			ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
-			sender.sendMessage(ChatColor.DARK_GREEN + timeLogin + " "
-			 		 		 + ChatColor.RED + timeOnline + " "
-			 		 		 + chatColorGroup + playerName);
+			showLoginEntry(sender, e);
 		}
 
 		sender.sendMessage("Logins: " + rawList.size()
@@ -239,36 +231,38 @@ public class SubCommands {
 						 + " Avg: " + helper.timeFormatted((int)(totalTimeOnline / rawList.size())));
 	}
 	
-	// Show one line of the newest players list
-	public void showOneLogin(CommandSender sender, String theLine) {
-		String[] temp = theLine.split("\\s+");
-		String date = temp[0];
-		String time = temp[1];
-		String onlineTime = "";
-		String playerName = "";
-		
-		if (temp.length == 4) {  		// Player is offline
-			onlineTime = temp[2];
-			playerName = temp[3];
-		} else if (temp.length == 6) {  // Player is online
-			onlineTime = "[ ONLINE ]";
-			playerName = temp[5];
-		}
-		
+	// Show one login entry
+	public void showLoginEntry(CommandSender sender, LoginEntry le) {
+		String playerName = le.getPlayerName();
+		String timeLogin  = le.getTimeLogin();
+		String timeOnline = le.getTimeOnlineAsString();
 		String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
 		String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
 		
-		if (onlineTime.contains("ONLINE")) {
-			sender.sendMessage(ChatColor.DARK_GREEN + date + " "
-							 + time + " "
-							 + onlineTime + " "
+		if (timeOnline.contains("ONLINE")) {
+			sender.sendMessage(ChatColor.DARK_GREEN + timeLogin + " "
+							 + timeOnline + " "
 							 + chatColorGroup + playerName);
 		} else {
-			sender.sendMessage(ChatColor.DARK_GREEN + date + " "
-					 		 + time + " "
-					 		 + ChatColor.RED + onlineTime + " "
+			sender.sendMessage(ChatColor.DARK_GREEN + timeLogin + " "
+					 		 + ChatColor.RED + timeOnline + " "
 					 		 + chatColorGroup + playerName);
 		}
+	}
+	
+	// Show one login entry of a player
+	public void showPlayerLogin(CommandSender sender, LoginEntry le) {
+		String timeLogin  = le.getTimeLogin();
+		String timeOnline = le.getTimeOnlineAsString();
+		String world      = le.getWorld();
+		int x             = le.getX();
+		int y             = le.getY();
+		int z             = le.getZ();
+		
+		sender.sendMessage(ChatColor.DARK_GREEN + timeLogin + " "
+						 + timeOnline + " "
+						 + world + "("
+						 + x + "," + y + "," + z + ")");
 	}
 }
