@@ -28,15 +28,19 @@ public class Commands implements CommandExecutor {
 			) {
 			
 			if (args.length == 0) {
-				sender.sendMessage("[Statistics] Commands:");
-				sender.sendMessage(ChatColor.RED + "/stats user [player]" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats user [player] {page}");
+				sender.sendMessage("[Statistics] Commands ([]=mandatory, {}=optional):");
+				sender.sendMessage(ChatColor.RED + "/stats user [player] {page}");
 				sender.sendMessage(ChatColor.YELLOW + "Statistics for a player");
-				sender.sendMessage(ChatColor.RED + "/stats self" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats self {page}");
+				sender.sendMessage(ChatColor.RED + "/stats self {page}");
 				sender.sendMessage(ChatColor.YELLOW + "Statistics for yourself");
-				sender.sendMessage(ChatColor.RED + "/stats newp" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats newp {page}");
+				sender.sendMessage(ChatColor.RED + "/stats newp {page}");
 				sender.sendMessage(ChatColor.YELLOW + "Newest players logged into the server");
-				sender.sendMessage(ChatColor.RED + "/stats new" + ChatColor.WHITE +  " | " + ChatColor.RED +  "/stats new {page}");
+				sender.sendMessage(ChatColor.RED + "/stats new {page}");
 				sender.sendMessage(ChatColor.YELLOW + "All newest logins to the server");
+				sender.sendMessage(ChatColor.RED + "/stats since [1d2h3m4s] {page}");
+				sender.sendMessage(ChatColor.YELLOW + "Logins since a given time (1d, 1d40m, 2h50m30s)");
+				sender.sendMessage(ChatColor.RED + "/stats date [yyyy-mm-dd] {page}");
+				sender.sendMessage(ChatColor.YELLOW + "Info of a given date");
 				return true;
 			}
 			
