@@ -1,6 +1,6 @@
 name: Statistics
 main: com.github.etsija.statistics.Statistics
-version: 0.3
+version: 0.4
 depend: [Vault, SQLibrary]
 commands:
    stats:

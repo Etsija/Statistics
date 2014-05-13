@@ -257,6 +257,30 @@ public class SqlFuncs {
 		return retList;
 	}
 	
+	// Get all players who have logged into the server to a list
+	public List<PlayerData> readAllPlayers() {
+		List<PlayerData> retList = new ArrayList<PlayerData>();
+		try {
+			ResultSet rs = _sqLite.query("SELECT * FROM player;");
+			while (rs.next()) {
+				try {
+					String playerName = rs.getString("playername");
+					int totalLogins = getTotalLogins(playerName);
+					int totalPlaytime = getTotalPlaytime(playerName);
+					int avgPlaytime = getAvgPlaytime(playerName);
+					PlayerData pd = new PlayerData(playerName, totalLogins, totalPlaytime, avgPlaytime);
+					retList.add(pd);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return retList;
+	}
+	
+	
 	// Get the online time of a player (in seconds)
 	public int getOnlineTime(String playerName) {
 		int onlineTime = 0;

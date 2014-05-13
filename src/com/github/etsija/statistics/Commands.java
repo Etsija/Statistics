@@ -41,6 +41,8 @@ public class Commands implements CommandExecutor {
 				sender.sendMessage(ChatColor.YELLOW + "Logins since a given time (1d, 1d40m, 2h50m30s)");
 				sender.sendMessage(ChatColor.RED + "/stats date [yyyy-mm-dd] {page}");
 				sender.sendMessage(ChatColor.YELLOW + "Info of a given date");
+				sender.sendMessage(ChatColor.RED + "/stats top {page}");
+				sender.sendMessage(ChatColor.YELLOW + "Top players, based on total playtime on server");
 				return true;
 			}
 			
@@ -94,6 +96,12 @@ public class Commands implements CommandExecutor {
 					return true;
 				}
 				subCmds.cmdStatsDate(sender, args);
+				return true;
+			
+			// /stats top {page}
+			} else if (args[0].equalsIgnoreCase("top") &&
+					   sender.hasPermission("statistics.stats.top")) {
+				subCmds.cmdStatsTop(sender, args);
 				return true;
 			}
 		}

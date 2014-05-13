@@ -1,6 +1,8 @@
 package com.github.etsija.statistics;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -15,6 +17,41 @@ public class SubCommands {
 	HelperMethods helper = new HelperMethods();
 	enum ListType {
 		SINCE, NEW, NEWP
+	}
+	
+	// Yishai
+	// http://stackoverflow.com/questions/1421322/how-do-i-sort-a-list-with-multiple-sort-parameters#1421537
+	enum PDComp implements Comparator<PlayerData> {
+	    PLAYTIME_SORT {
+	        public int compare(PlayerData o1, PlayerData o2) {
+	            return Integer.valueOf(o1.getTotalPlaytime()).compareTo(o2.getTotalPlaytime());
+	        }},
+	    LOGINS_SORT {
+	        public int compare(PlayerData o1, PlayerData o2) {
+	            return Integer.valueOf(o1.getTotalLogins()).compareTo(o2.getTotalLogins());
+	        }};
+
+	    public static Comparator<PlayerData> desc(final Comparator<PlayerData> other) {
+	        return new Comparator<PlayerData>() {
+	            public int compare(PlayerData o1, PlayerData o2) {
+	                return -1 * other.compare(o1, o2);
+	            }
+	        };
+	    }
+
+	    public static Comparator<PlayerData> getComparator(final PDComp... multipleOptions) {
+	        return new Comparator<PlayerData>() {
+	            public int compare(PlayerData o1, PlayerData o2) {
+	                for (PDComp option : multipleOptions) {
+	                    int result = option.compare(o1, o2);
+	                    if (result != 0) {
+	                        return result;
+	                    }
+	                }
+	                return 0;
+	            }
+	        };
+	    }
 	}
 	
 	SubCommands(Statistics passedPlugin) {
@@ -110,6 +147,17 @@ public class SubCommands {
 			String date = args[1];
 			int page = Integer.parseInt(args[2]);
 			showLoginStatsDate(sender, date, page, plugin.listsPerPage);
+		}
+	}
+	
+	// /stats top {page}
+	public void cmdStatsTop(CommandSender sender, String[] args) {
+		if (args.length < 2) {
+			showTopPlayers(sender, 1, plugin.listsPerPage);
+			
+		} else if (args.length == 2) {
+			int page = Integer.parseInt(args[1]);
+			showTopPlayers(sender, page, plugin.listsPerPage);
 		}
 	}
 	
@@ -231,6 +279,26 @@ public class SubCommands {
 						 + " Avg: " + helper.timeFormatted((int)(totalTimeOnline / rawList.size())));
 	}
 	
+	// Show login stats of one day
+	public void showTopPlayers(CommandSender sender,
+							   int page,
+							   int itemsPerPage) {
+		List<PlayerData> rawList = plugin.sqlDb.readAllPlayers();
+		
+		// Sort first by total playtime, then by total logins 
+		Collections.sort(rawList, PDComp.desc(PDComp.getComparator(PDComp.PLAYTIME_SORT, PDComp.LOGINS_SORT)));
+		ListPage<PlayerData> pList = helper.paginate(rawList, page, itemsPerPage);
+		int nPages = helper.nPages(rawList.size(), itemsPerPage);
+		
+		sender.sendMessage("[Statistics] Top playtime "
+		 		 		 + ChatColor.YELLOW + " (Page " + pList.getPage() + "/" + nPages + ")");
+		sender.sendMessage("Name  (Total playtime, Logins, Average playtime)");
+		
+		for (PlayerData pd : pList.getList()) {
+			showPlayerDataEntry(sender, pd);
+		}
+	}
+	
 	// Show one login entry
 	public void showLoginEntry(CommandSender sender, LoginEntry le) {
 		String playerName = le.getPlayerName();
@@ -265,4 +333,18 @@ public class SubCommands {
 						 + world + "("
 						 + x + "," + y + "," + z + ")");
 	}
+	
+	// Show sum statistics of a player
+	public void showPlayerDataEntry(CommandSender sender, PlayerData pd) {
+		String playerName = pd.getPlayerName();
+		String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
+		String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
+		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
+			
+		sender.sendMessage(chatColorGroup + playerName + "   "
+						 + ChatColor.DARK_GREEN + "(" + helper.timeFormatted(pd.getTotalPlaytime()) + ", "
+						 + pd.getTotalLogins() + ", "
+						 + helper.timeFormatted(pd.getAvgPlaytime()) + ")");
+	}
+	
 }
