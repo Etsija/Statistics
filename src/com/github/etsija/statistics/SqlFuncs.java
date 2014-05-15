@@ -11,6 +11,7 @@ import lib.PatPeter.SQLibrary.SQLite;
 public class SqlFuncs {
 	private SQLite _sqLite;		// Used to access the database
 	HelperMethods helper = new HelperMethods();
+	private Logger _log = Logger.getLogger("Minecraft"); 	// Write debug info to console
 	
 	// Function for initialising a connection to the database / creating it
 	public SqlFuncs(Statistics plugin, 
@@ -59,6 +60,30 @@ public class SqlFuncs {
 						    + "FOREIGN KEY(id_player) REFERENCES player(id) ON DELETE CASCADE);");
 			} catch (Exception e) {
 				// TODO
+			}
+		}
+	}
+	
+	// Upgrade the tables (add columns, mostly
+	public void upgradeTables() {
+		
+		// Add blocks_built into LOGIN
+		if (_sqLite.isTable("login")) {
+			try {
+				_sqLite.query("ALTER TABLE login ADD COLUMN blocks_built INT;");
+				_log.info("[Statistics] Table LOGIN upgraded - column blocks_built added");
+			} catch (SQLException e) {
+				
+			}
+		}
+		
+		// Add blocks_broken into LOGIN
+		if (_sqLite.isTable("login")) {
+			try {
+				_sqLite.query("ALTER TABLE login ADD COLUMN blocks_broken INT;");
+				_log.info("[Statistics] Table LOGIN upgraded - column blocks_broken added");
+			} catch (SQLException e) {
+				
 			}
 		}
 	}

@@ -65,6 +65,7 @@ public class Statistics extends JavaPlugin {
 							 "Statistics", 
 							 ".sqlite");
 		sqlDb.createTables();
+		sqlDb.upgradeTables();
 		new PlayerListener(this);
 		setupPermissions();
 		setupChat();

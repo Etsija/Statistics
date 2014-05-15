@@ -319,7 +319,7 @@ public class SubCommands {
 				tmpStr = "number of logins";
 				break;
 			case SORT_AVG:
-				tmpStr = "avegare playtime";
+				tmpStr = "average playtime";
 				break;
 		}
 		
