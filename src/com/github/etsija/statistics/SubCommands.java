@@ -22,14 +22,19 @@ public class SubCommands {
 	// Yishai
 	// http://stackoverflow.com/questions/1421322/how-do-i-sort-a-list-with-multiple-sort-parameters#1421537
 	enum PDComp implements Comparator<PlayerData> {
-	    PLAYTIME_SORT {
+	    SORT_PLAYTIME {
 	        public int compare(PlayerData o1, PlayerData o2) {
 	            return Integer.valueOf(o1.getTotalPlaytime()).compareTo(o2.getTotalPlaytime());
-	        }},
-	    LOGINS_SORT {
+	        }
+	    }, SORT_LOGINS {
 	        public int compare(PlayerData o1, PlayerData o2) {
 	            return Integer.valueOf(o1.getTotalLogins()).compareTo(o2.getTotalLogins());
-	        }};
+	        }
+	    }, SORT_AVG {
+	    	public int compare(PlayerData o1, PlayerData o2) {
+	    		return Integer.valueOf(o1.getAvgPlaytime()).compareTo(o2.getAvgPlaytime());
+	    	}
+	    };
 
 	    public static Comparator<PlayerData> desc(final Comparator<PlayerData> other) {
 	        return new Comparator<PlayerData>() {
@@ -150,14 +155,27 @@ public class SubCommands {
 		}
 	}
 	
-	// /stats top {page}
+	// /stats top [online/logins/avg] {page}
 	public void cmdStatsTop(CommandSender sender, String[] args) {
-		if (args.length < 2) {
-			showTopPlayers(sender, 1, plugin.listsPerPage);
-			
-		} else if (args.length == 2) {
-			int page = Integer.parseInt(args[1]);
-			showTopPlayers(sender, page, plugin.listsPerPage);
+		if (args.length == 2) {
+			String sortBy = args[1];
+			if (sortBy.equalsIgnoreCase("online")) {
+				showTopPlayers(sender, PDComp.SORT_PLAYTIME, 1, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("logins")) {
+				showTopPlayers(sender, PDComp.SORT_LOGINS, 1, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("avg")) {
+				showTopPlayers(sender, PDComp.SORT_AVG, 1, plugin.listsPerPage);
+			}
+		} else if (args.length == 3) {
+			String sortBy = args[1];
+			int page = Integer.parseInt(args[2]);
+			if (sortBy.equalsIgnoreCase("online")) {
+				showTopPlayers(sender, PDComp.SORT_PLAYTIME, page, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("logins")) {
+				showTopPlayers(sender, PDComp.SORT_LOGINS, page, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("avg")) {
+				showTopPlayers(sender, PDComp.SORT_AVG, page, plugin.listsPerPage);
+			}
 		}
 	}
 	
@@ -281,21 +299,37 @@ public class SubCommands {
 	
 	// Show login stats of one day
 	public void showTopPlayers(CommandSender sender,
+							   PDComp sortBy,
 							   int page,
 							   int itemsPerPage) {
 		List<PlayerData> rawList = plugin.sqlDb.readAllPlayers();
 		
 		// Sort first by total playtime, then by total logins 
-		Collections.sort(rawList, PDComp.desc(PDComp.getComparator(PDComp.PLAYTIME_SORT, PDComp.LOGINS_SORT)));
+		Collections.sort(rawList, PDComp.desc(PDComp.getComparator(sortBy)));
 		ListPage<PlayerData> pList = helper.paginate(rawList, page, itemsPerPage);
 		int nPages = helper.nPages(rawList.size(), itemsPerPage);
+		int thisPage = pList.getPage();
+		int i = (thisPage - 1) * itemsPerPage + 1;
+		String tmpStr = "";
+		switch (sortBy) {
+			case SORT_PLAYTIME:
+				tmpStr = "total playtime";
+				break;
+			case SORT_LOGINS:
+				tmpStr = "number of logins";
+				break;
+			case SORT_AVG:
+				tmpStr = "avegare playtime";
+				break;
+		}
 		
-		sender.sendMessage("[Statistics] Top playtime "
-		 		 		 + ChatColor.YELLOW + " (Page " + pList.getPage() + "/" + nPages + ")");
-		sender.sendMessage("Name  (Total playtime, Logins, Average playtime)");
+		sender.sendMessage("[Statistics] Top players by " + tmpStr
+		 		 		 + ChatColor.YELLOW + " (Page " + thisPage + "/" + nPages + ")");
+		sender.sendMessage("# Name  (Total playtime, Logins, Average playtime)");
 		
 		for (PlayerData pd : pList.getList()) {
-			showPlayerDataEntry(sender, pd);
+			showPlayerDataEntry(sender, pd, i);
+			i++;
 		}
 	}
 	
@@ -335,16 +369,16 @@ public class SubCommands {
 	}
 	
 	// Show sum statistics of a player
-	public void showPlayerDataEntry(CommandSender sender, PlayerData pd) {
+	public void showPlayerDataEntry(CommandSender sender, PlayerData pd, int n) {
 		String playerName = pd.getPlayerName();
 		String group = Statistics.permission.getPrimaryGroup("", playerName);	// Player's permission group
 		String color = Statistics.chat.getGroupPrefix("", group).substring(1);	// Player's chat color code
 		ChatColor chatColorGroup = ChatColor.getByChar(color);		// Player's chat color
-			
-		sender.sendMessage(chatColorGroup + playerName + "   "
-						 + ChatColor.DARK_GREEN + "(" + helper.timeFormatted(pd.getTotalPlaytime()) + ", "
-						 + pd.getTotalLogins() + ", "
-						 + helper.timeFormatted(pd.getAvgPlaytime()) + ")");
-	}
-	
+
+		sender.sendMessage(ChatColor.DARK_GREEN + "" + n + " " 
+						 + chatColorGroup + playerName + "   "
+				 		 + ChatColor.DARK_GREEN + "(" + helper.timeFormatted(pd.getTotalPlaytime()) + ", "
+				 		 + helper.timeFormatted(pd.getAvgPlaytime()) + ", "
+		 				 + pd.getTotalLogins() + ")");
+	}	
 }
