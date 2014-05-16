@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,7 +28,7 @@ public class Statistics extends JavaPlugin {
 	int listsPerPage;										// Config parameter
 	public static Permission permission = null;
 	public static Chat chat = null;
-
+	public static HashMap<Player, PlayerData> onlinePlayers = new HashMap<Player, PlayerData>();	// Holds player data counters (block place/break etc.)
 	
 	public void onEnable() {
 		

@@ -70,8 +70,8 @@ public class SqlFuncs {
 		// Add blocks_built into LOGIN
 		if (_sqLite.isTable("login")) {
 			try {
-				_sqLite.query("ALTER TABLE login ADD COLUMN blocks_built INT;");
-				_log.info("[Statistics] Table LOGIN upgraded - column blocks_built added");
+				_sqLite.query("ALTER TABLE login ADD COLUMN blocks_placed INT;");
+				_log.info("[Statistics] Table LOGIN upgraded - column blocks_placed added");
 			} catch (SQLException e) {
 				
 			}
@@ -172,7 +172,9 @@ public class SqlFuncs {
 		   					   					   rs.getString("world"),
 		   					   					   rs.getInt("x"),
 		   					   					   rs.getInt("y"),
-		   					   					   rs.getInt("z"));
+		   					   					   rs.getInt("z"),
+		   					   					   rs.getInt("blocks_placed"),
+		   					   					   rs.getInt("blocks_broken"));
 					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -195,7 +197,9 @@ public class SqlFuncs {
 				try {
 					LoginEntry le = new LoginEntry(rs.getString("playername"),
 							   					   rs.getString("time_login"),
-							   					   rs.getInt("time_online"));
+							   					   rs.getInt("time_online"),
+							   					   rs.getInt("blocks_placed"),
+							   					   rs.getInt("blocks_broken"));
 					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -219,7 +223,9 @@ public class SqlFuncs {
 				try {
 					LoginEntry le = new LoginEntry(rs.getString("playername"),
 												   rs.getString("time_login"),
-												   rs.getInt("time_online"));
+												   rs.getInt("time_online"),
+												   rs.getInt("blocks_placed"),
+												   rs.getInt("blocks_broken"));
 					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -244,7 +250,9 @@ public class SqlFuncs {
 				try {
 					LoginEntry le = new LoginEntry(rs.getString("playername"), 
 												   rs.getString("time_login"), 
-												   rs.getInt("time_online"));
+												   rs.getInt("time_online"),
+												   rs.getInt("blocks_placed"),
+												   rs.getInt("blocks_broken"));
 					retList.add(le);
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -293,7 +301,12 @@ public class SqlFuncs {
 					int totalLogins = getTotalLogins(playerName);
 					int totalPlaytime = getTotalPlaytime(playerName);
 					int avgPlaytime = getAvgPlaytime(playerName);
-					PlayerData pd = new PlayerData(playerName, totalLogins, totalPlaytime, avgPlaytime);
+					int totalBlocksPlaced = getTotalBlocksPlaced(playerName);
+					int avgBlocksPlaced = getAvgBlocksPlaced(playerName);
+					int totalBlocksBroken = getTotalBlocksBroken(playerName);
+					int avgBlocksBroken = getAvgBlocksBroken(playerName);
+					PlayerData pd = new PlayerData(playerName, totalLogins, totalPlaytime, avgPlaytime,
+												   totalBlocksPlaced, avgBlocksPlaced, totalBlocksBroken, avgBlocksBroken);
 					retList.add(pd);
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -415,11 +428,99 @@ public class SqlFuncs {
 		return avgPlaytime;
 	}
 	
+	// Get the total blocks placed of a player on this server
+	public int getTotalBlocksPlaced(String playerName) {
+		int totalBlocksPlaced = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT total(blocks_placed) "
+									   + "AS total_blocks_placed "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					totalBlocksPlaced = rs.getInt("total_blocks_placed");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return totalBlocksPlaced;
+	}
+	
+	// Get the average blocks placed of a player on this server
+	public int getAvgBlocksPlaced(String playerName) {
+		float avgBlocksPlaced = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT avg(blocks_placed) "
+									   + "AS avg_blocks_placed "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					avgBlocksPlaced = rs.getFloat("avg_blocks_placed");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return (int) avgBlocksPlaced;
+	}
+	
+	// Get the total blocks placed of a player on this server
+	public int getTotalBlocksBroken(String playerName) {
+		int totalBlocksBroken = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT total(blocks_broken) "
+									   + "AS total_blocks_broken "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					totalBlocksBroken = rs.getInt("total_blocks_broken");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return totalBlocksBroken;
+	}
+	
+	// Get the average blocks placed of a player on this server
+	public int getAvgBlocksBroken(String playerName) {
+		float avgBlocksBroken = 0;
+		try {
+			ResultSet rs = _sqLite.query("SELECT avg(blocks_broken) "
+									   + "AS avg_blocks_broken "
+									   + "FROM player, login "
+									   + "WHERE player.playername = '" + playerName + "' "
+									   + "AND player.id = login.id_player;");
+			if (rs.next()) {
+				try {
+					avgBlocksBroken = rs.getFloat("avg_blocks_broken");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return (int) avgBlocksBroken;
+	}
+	
 	// CRUD: Update
 	
 	// Function for inserting a logout event into LOGIN table.  This effectively is an update query
 	// which updates the record, previously created with insertLogin(), with the logout details
-	public boolean insertLogout(int idLogin, String world, int x, int y, int z) {
+	public boolean insertLogout(int idLogin, String world, int x, int y, int z, int blocksPlaced, int blocksBroken) {
 		try {
 			// Update the logout time, world & coordinates where logged out
 			_sqLite.query("UPDATE login "
@@ -427,7 +528,9 @@ public class SqlFuncs {
 					    + "world = '" + world + "', "
 					    + "x = '" + x + "', "
 					    + "y = '" + y + "', "
-					    + "z = '" + z + "' "
+					    + "z = '" + z + "', " 
+					    + "blocks_placed = '" + blocksPlaced + "', "
+					    + "blocks_broken = '" + blocksBroken + "' "
 					    + "WHERE id = '" + idLogin + "';");
 			// Separate update query to calculate the online time
 			_sqLite.query("UPDATE login "

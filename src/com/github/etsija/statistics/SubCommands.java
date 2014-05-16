@@ -223,6 +223,10 @@ public class SubCommands {
 		if (isOnline) {
 			sender.sendMessage("IP: " + ipAddress);
 		}
+		sender.sendMessage("Blocks placed: " + plugin.sqlDb.getTotalBlocksPlaced(playerName) + "("
+						 + plugin.sqlDb.getAvgBlocksPlaced(playerName) + "), "
+						 + "broken: " + plugin.sqlDb.getTotalBlocksBroken(playerName) + "("
+						 + plugin.sqlDb.getAvgBlocksBroken(playerName) + ")");
 	}
 	
 	// Show login stats
@@ -273,6 +277,8 @@ public class SubCommands {
 							   	  int page,
 							   	  int itemsPerPage) {
 		int totalTimeOnline = 0;
+		int totalBlocksPlaced = 0;
+		int totalBlocksBroken = 0;
 		List<LoginEntry> rawList = plugin.sqlDb.readLoginsDate(date);
 		if (rawList.size() == 0) {
 			sender.sendMessage("[Statistics] Sorry, no logins on that date.");
@@ -286,6 +292,8 @@ public class SubCommands {
 	
 		for (LoginEntry e : rawList) {
 			totalTimeOnline += e.getTimeOnline();
+			totalBlocksPlaced += e.getBlocksPlaced();
+			totalBlocksBroken += e.getBlocksBroken();
 		}
 		
 		for (LoginEntry e : pList.getList()) {
@@ -295,6 +303,10 @@ public class SubCommands {
 		sender.sendMessage("Logins: " + rawList.size()
 						 + " Tot: " + helper.timeFormatted(totalTimeOnline)
 						 + " Avg: " + helper.timeFormatted((int)(totalTimeOnline / rawList.size())));
+		sender.sendMessage("Blocks placed: " + totalBlocksPlaced + "("
+						 + (int)(totalBlocksPlaced / rawList.size()) + "), broken: "
+						 + totalBlocksBroken + "("
+						 + (int)(totalBlocksBroken / rawList.size()) + ")");
 	}
 	
 	// Show login stats of one day

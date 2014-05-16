@@ -2,13 +2,16 @@ package com.github.etsija.statistics;
 
 // A class which represents one login entry from "login" table
 public class LoginEntry {
-	String _playerName;
-	String _timeLogin;
-	int    _timeOnline;
-	String _world;
-	int _x;
-	int _y;
-	int _z;
+	private String _playerName;
+	private String _timeLogin;
+	private int _timeOnline;
+	private String _world;
+	private int _x;
+	private int _y;
+	private int _z;
+	private int _blocksPlaced;
+	private int _blocksBroken;
+	
 	HelperMethods helper = new HelperMethods();
 	
 	LoginEntry(String name, String login, int online) {
@@ -17,7 +20,15 @@ public class LoginEntry {
 		this._timeOnline = online;
 	}
 	
-	LoginEntry(String name, String login, int online, String world, int x, int y, int z) {
+	LoginEntry(String name, String login, int online, int blocksPlaced, int blocksBroken) {
+		this._playerName = name;
+		this._timeLogin = login;
+		this._timeOnline = online;
+		this._blocksPlaced = blocksPlaced;
+		this._blocksBroken = blocksBroken;
+	}
+	
+	LoginEntry(String name, String login, int online, String world, int x, int y, int z, int blocksPlaced, int blocksBroken) {
 		this._playerName = name;
 		this._timeLogin = login;
 		this._timeOnline = online;
@@ -25,6 +36,8 @@ public class LoginEntry {
 		this._x = x;
 		this._y = y;
 		this._z = z;
+		this._blocksPlaced = blocksPlaced;
+		this._blocksBroken = blocksBroken;
 	}
 	
 	public String getPlayerName() {
@@ -87,5 +100,21 @@ public class LoginEntry {
 	
 	public int getZ() {
 		return this._z;
+	}
+	
+	public void setBlocksPlaced(int blocksPlaced) {
+		this._blocksPlaced = blocksPlaced;
+	}
+	
+	public int getBlocksPlaced() {
+		return this._blocksPlaced;
+	}
+	
+	public void setBlocksBroken(int blocksBroken) {
+		this._blocksBroken = blocksBroken;
+	}
+	
+	public int getBlocksBroken() {
+		return this._blocksBroken;
 	}
 }
