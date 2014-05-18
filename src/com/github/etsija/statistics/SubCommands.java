@@ -34,6 +34,14 @@ public class SubCommands {
 	    	public int compare(PlayerData o1, PlayerData o2) {
 	    		return Integer.valueOf(o1.getAvgPlaytime()).compareTo(o2.getAvgPlaytime());
 	    	}
+	    }, SORT_BUILD {
+	    	public int compare(PlayerData o1, PlayerData o2) {
+	    		return Integer.valueOf(o1.getTotalBlocksPlaced()).compareTo(o2.getTotalBlocksPlaced());
+	    	}
+	    }, SORT_BREAK {
+		    	public int compare(PlayerData o1, PlayerData o2) {
+		    		return Integer.valueOf(o1.getTotalBlocksBroken()).compareTo(o2.getTotalBlocksBroken());
+		    	}
 	    };
 
 	    public static Comparator<PlayerData> desc(final Comparator<PlayerData> other) {
@@ -165,6 +173,10 @@ public class SubCommands {
 				showTopPlayers(sender, PDComp.SORT_LOGINS, 1, plugin.listsPerPage);
 			} else if (sortBy.equalsIgnoreCase("avg")) {
 				showTopPlayers(sender, PDComp.SORT_AVG, 1, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("build")) {
+				showTopPlayers(sender, PDComp.SORT_BUILD, 1, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("break")) {
+				showTopPlayers(sender, PDComp.SORT_BREAK, 1, plugin.listsPerPage);
 			}
 		} else if (args.length == 3) {
 			String sortBy = args[1];
@@ -175,6 +187,10 @@ public class SubCommands {
 				showTopPlayers(sender, PDComp.SORT_LOGINS, page, plugin.listsPerPage);
 			} else if (sortBy.equalsIgnoreCase("avg")) {
 				showTopPlayers(sender, PDComp.SORT_AVG, page, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("build")) {
+				showTopPlayers(sender, PDComp.SORT_BUILD, page, plugin.listsPerPage);
+			} else if (sortBy.equalsIgnoreCase("break")) {
+				showTopPlayers(sender, PDComp.SORT_BREAK, page, plugin.listsPerPage);
 			}
 		}
 	}
@@ -280,6 +296,7 @@ public class SubCommands {
 		int totalBlocksPlaced = 0;
 		int totalBlocksBroken = 0;
 		List<LoginEntry> rawList = plugin.sqlDb.readLoginsDate(date);
+		List<LoginEntry> playerList = plugin.sqlDb.readPlayersDate(date);
 		if (rawList.size() == 0) {
 			sender.sendMessage("[Statistics] Sorry, no logins on that date.");
 			return;
@@ -300,7 +317,8 @@ public class SubCommands {
 			showLoginEntry(sender, e);
 		}
 
-		sender.sendMessage("Logins: " + rawList.size()
+		sender.sendMessage("Players: " + playerList.size()
+						 + " Logins: " + rawList.size()
 						 + " Tot: " + helper.timeFormatted(totalTimeOnline)
 						 + " Avg: " + helper.timeFormatted((int)(totalTimeOnline / rawList.size())));
 		sender.sendMessage("Blocks placed: " + totalBlocksPlaced + "("
@@ -333,11 +351,17 @@ public class SubCommands {
 			case SORT_AVG:
 				tmpStr = "average playtime";
 				break;
+			case SORT_BUILD:
+				tmpStr = "blocks placed";
+				break;
+			case SORT_BREAK:
+				tmpStr = "blocks broken";
+				break;
 		}
 		
 		sender.sendMessage("[Statistics] Top players by " + tmpStr
 		 		 		 + ChatColor.YELLOW + " (Page " + thisPage + "/" + nPages + ")");
-		sender.sendMessage("# Name  (Total playtime, Logins, Average playtime)");
+		sender.sendMessage("# Name  (Playtime, Logins, Avg playtime, Bl. placed, Bl. broken)");
 		
 		for (PlayerData pd : pList.getList()) {
 			showPlayerDataEntry(sender, pd, i);
@@ -390,7 +414,9 @@ public class SubCommands {
 		sender.sendMessage(ChatColor.DARK_GREEN + "" + n + " " 
 						 + chatColorGroup + playerName + "   "
 				 		 + ChatColor.DARK_GREEN + "(" + helper.timeFormatted(pd.getTotalPlaytime()) + ", "
+				 		 + pd.getTotalLogins() + ", "
 				 		 + helper.timeFormatted(pd.getAvgPlaytime()) + ", "
-		 				 + pd.getTotalLogins() + ")");
+		 				 + pd.getTotalBlocksPlaced() + ", "
+		 				 + pd.getTotalBlocksBroken() + ")");
 	}	
 }
