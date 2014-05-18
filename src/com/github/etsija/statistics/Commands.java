@@ -107,6 +107,12 @@ public class Commands implements CommandExecutor {
 				}
 				subCmds.cmdStatsTop(sender, args);
 				return true;
+			
+			// /stats writecsv
+			} else if (args[0].equalsIgnoreCase("writecsv") &&
+					   sender.hasPermission("statistics.stats.writecsv")) {
+				subCmds.cmdStatsWriteCsv(sender);
+				return true;
 			}
 		}
 		return false;

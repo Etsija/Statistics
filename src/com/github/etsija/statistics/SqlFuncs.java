@@ -154,6 +154,26 @@ public class SqlFuncs {
 		return idLogin;
 	}
 	
+	// Function to return the 1st date of the DB markings
+	public List<String> readActiveDates() {
+		List<String> retList = new ArrayList<String>();
+		
+		try {
+			ResultSet rs = _sqLite.query("SELECT DISTINCT date(time_login) AS dt FROM login;");
+			while (rs.next()) {
+				try {
+					String tmpStr = rs.getString("dt");
+					retList.add(tmpStr);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+		return retList;
+	}
+	
 	// Function for reading the login info of a player
 	// Valid: times, coords etc. cannot be null
 	public List<LoginEntry> readLoginInfo(String playerName) {

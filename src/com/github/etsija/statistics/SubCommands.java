@@ -1,5 +1,9 @@
 package com.github.etsija.statistics;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -193,6 +197,66 @@ public class SubCommands {
 				showTopPlayers(sender, PDComp.SORT_BREAK, page, plugin.listsPerPage);
 			}
 		}
+	}
+	
+	// /stats writecsv
+	public void cmdStatsWriteCsv(CommandSender sender) {
+		List<String> activeDates = plugin.sqlDb.readActiveDates();
+		int nPlayers = 0;
+		List<LoginEntry> logins = new ArrayList<LoginEntry>();
+		int nLogins = 0;
+		int totalTimeOnline;
+		int totalBlocksPlaced;
+		int totalBlocksBroken;
+		int nDates = 0;
+		File saveFile = new File(plugin.getDataFolder(), "server.csv");
+		BufferedWriter writer = null;
+		
+		// In case the savefile doesn't exist, create it
+		if (!saveFile.exists()) {
+			try {
+				saveFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		try {
+			writer = new BufferedWriter(new FileWriter(saveFile));
+			writer.write("Date, Players, Logins, Tot Online Time, Blocks placed, Blocks broken\n");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		for (String date : activeDates) {
+			nDates++;
+			nPlayers = plugin.sqlDb.readPlayersDate(date).size();
+			logins = plugin.sqlDb.readLoginsDate(date);
+			nLogins  = logins.size();
+			totalTimeOnline = 0;
+			totalBlocksPlaced = 0;
+			totalBlocksBroken = 0;
+			for (LoginEntry e : logins) {
+				totalTimeOnline += e.getTimeOnline();
+				totalBlocksPlaced += e.getBlocksPlaced();
+				totalBlocksBroken += e.getBlocksBroken();
+			}
+			try {
+				writer.write(date + ", "
+						   + nPlayers + ", "
+						   + nLogins + ", "
+						   + totalTimeOnline + ", "
+						   + totalBlocksPlaced + ", "
+						   + totalBlocksBroken + "\n");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		try {
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		sender.sendMessage("[Statistics] Server data for " + nDates + " days saved to server.csv");
 	}
 	
 	//////////////////////////////////////
