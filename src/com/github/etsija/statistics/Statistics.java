@@ -26,6 +26,7 @@ public class Statistics extends JavaPlugin {
 	FileConfiguration config;								// configuration object for config.yml
 	SqlFuncs sqlDb;											// Used to access the SqlFuncs class (= the database handling methods)
 	int listsPerPage;										// Config parameter
+	String csvSeparator;									// Config parameter
 	public static Permission permission = null;
 	public static Chat chat = null;
 	public static HashMap<Player, PlayerData> onlinePlayers = new HashMap<Player, PlayerData>();	// Holds player data counters (block place/break etc.)
@@ -50,6 +51,7 @@ public class Statistics extends JavaPlugin {
 		// Set the default parameter values
 		final Map<String, Object> configParams = new HashMap<String, Object>();
 		configParams.put("lists_per_page", 10);
+		configParams.put("csv_separator", ",");
 		setDefaultValues(config, configParams);
 				
 		// And save them to the files, if they don't already contain such parameters
@@ -58,6 +60,7 @@ public class Statistics extends JavaPlugin {
 				
 		// Finally, import all needed config params from the corresponding config files
 		listsPerPage = config.getInt("lists_per_page");
+		csvSeparator = config.getString("csv_separator");
 		
 		sqlDb = new SqlFuncs(this, 
 							 this._log, 

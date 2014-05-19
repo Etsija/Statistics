@@ -222,7 +222,12 @@ public class SubCommands {
 		}
 		try {
 			writer = new BufferedWriter(new FileWriter(saveFile));
-			writer.write("Date, Players, Logins, Tot Online Time, Blocks placed, Blocks broken\n");
+			writer.write("Date" + plugin.csvSeparator
+					   + " Players" + plugin.csvSeparator
+					   + " Logins" + plugin.csvSeparator
+					   + " Tot Online Time" + plugin.csvSeparator
+					   + " Blocks placed" + plugin.csvSeparator
+					   + " Blocks broken\n");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -241,11 +246,11 @@ public class SubCommands {
 				totalBlocksBroken += e.getBlocksBroken();
 			}
 			try {
-				writer.write(date + ", "
-						   + nPlayers + ", "
-						   + nLogins + ", "
-						   + totalTimeOnline + ", "
-						   + totalBlocksPlaced + ", "
+				writer.write(date + plugin.csvSeparator + " "
+						   + nPlayers + plugin.csvSeparator + " "
+						   + nLogins + plugin.csvSeparator + " "
+						   + totalTimeOnline + plugin.csvSeparator + " "
+						   + totalBlocksPlaced + plugin.csvSeparator + " "
 						   + totalBlocksBroken + "\n");
 			} catch (Exception e) {
 				e.printStackTrace();
